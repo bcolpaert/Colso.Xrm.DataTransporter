@@ -80,6 +80,10 @@ namespace Colso.DataTransporter.AppCode
             var targetRecords = targetRetrieveTask.Result;
             var recordCount = sourceRecords.Entities.Count;
             var missingCount = 0;
+            var createCount = 0;
+            var updateCount = 0;
+            var deleteCount = 0;
+            var skipCount = 0;
             var totalTaskCount = sourceRecords.Entities.Count;
 
             // Delete the missing source records in the target environment
@@ -94,6 +98,7 @@ namespace Colso.DataTransporter.AppCode
                     SetProgress(i / totalTaskCount, "");
                     SetStatusMessage("{0}/{1}: delete record", i + 1, missingCount);
                     targetService.Delete(entity.LogicalName, record);
+                    deleteCount++;
                 }
             }
 
@@ -110,19 +115,23 @@ namespace Colso.DataTransporter.AppCode
                     // Update existing record
                     SetStatusMessage("{0}/{1}: update record", i + 1, recordCount);
                     targetService.Update(record);
+                    updateCount++;
                 }
                 else if (!recordexist && ((transfermode & TransferMode.Create) == TransferMode.Create))
                 {
                     // Create missing record
                     SetStatusMessage("{0}/{1}: create record", i + 1, recordCount);
                     targetService.Create(record);
+                    createCount++;
                 }
                 else
                 {
                     SetStatusMessage("{0}/{1}: skip record", i + 1, recordCount);
+                    skipCount++;
                 }
             }
 
+            SetStatusMessage("{0} created; {1} updated; {2} deleted; {3} skipped", createCount, updateCount, deleteCount, skipCount);
         }
 
         private EntityCollection RetrieveAll(IOrganizationService service, string servicename, QueryExpression query, int pageSize = 250)

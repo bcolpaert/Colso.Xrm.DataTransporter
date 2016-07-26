@@ -57,6 +57,7 @@
             this.lvAttributes = new System.Windows.Forms.ListView();
             this.clAttDisplayName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clAttLogicalName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.clAttType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.gbEntities.SuspendLayout();
             this.pnlHeader.SuspendLayout();
             this.gbSettings.SuspendLayout();
@@ -342,7 +343,8 @@
             this.lvAttributes.CheckBoxes = true;
             this.lvAttributes.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.clAttDisplayName,
-            this.clAttLogicalName});
+            this.clAttLogicalName,
+            this.clAttType});
             this.lvAttributes.FullRowSelect = true;
             this.lvAttributes.HideSelection = false;
             this.lvAttributes.Location = new System.Drawing.Point(6, 44);
@@ -363,6 +365,11 @@
             // 
             this.clAttLogicalName.Text = "Logical Name";
             this.clAttLogicalName.Width = 150;
+            // 
+            // clAttType
+            // 
+            this.clAttType.Text = "Type";
+            this.clAttType.Width = 100;
             // 
             // DataTransporter
             // 
@@ -416,5 +423,6 @@
         private System.Windows.Forms.ColumnHeader clAttDisplayName;
         private System.Windows.Forms.ColumnHeader clAttLogicalName;
         private System.Windows.Forms.CheckBox chkAllAttributes;
+        private System.Windows.Forms.ColumnHeader clAttType;
     }
 }

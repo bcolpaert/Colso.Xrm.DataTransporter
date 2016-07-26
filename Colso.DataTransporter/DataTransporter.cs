@@ -318,9 +318,11 @@ namespace Colso.DataTransporter
                             foreach (AttributeMetadata attribute in entitymeta.Attributes.Where(a => a.IsValidForUpdate != null && a.IsValidForUpdate.Value))
                             {
                                 var name = attribute.DisplayName.UserLocalizedLabel == null ? string.Empty : attribute.DisplayName.UserLocalizedLabel.Label;
+                                var typename = attribute.AttributeTypeName == null ? string.Empty : attribute.AttributeTypeName.Value;
                                 var item = new ListViewItem(name);
                                 item.Tag = attribute;
                                 item.SubItems.Add(attribute.LogicalName);
+                                item.SubItems.Add(typename.EndsWith("Type") ? typename.Substring(0, typename.LastIndexOf("Type")) : typename);
 
                                 if (!attribute.IsCustomizable.Value)
                                 {
@@ -432,7 +434,7 @@ namespace Colso.DataTransporter
             {
                 Controls.Remove(informationPanel);
                 informationPanel.Dispose();
-                SendMessageToStatusBar(this, new StatusBarMessageEventArgs(string.Empty));
+                //SendMessageToStatusBar(this, new StatusBarMessageEventArgs(string.Empty)); // keep showing transfer results afterwards
                 ManageWorkingState(false);
 
                 var errors = (List<Tuple<string, string>>)e.Result;

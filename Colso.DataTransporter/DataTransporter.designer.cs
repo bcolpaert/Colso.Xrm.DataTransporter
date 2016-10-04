@@ -53,13 +53,14 @@
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.pnlBody = new System.Windows.Forms.TableLayoutPanel();
             this.gbAttributes = new System.Windows.Forms.GroupBox();
+            this.btnMappings = new System.Windows.Forms.Button();
+            this.btnFilter = new System.Windows.Forms.Button();
             this.chkAllAttributes = new System.Windows.Forms.CheckBox();
             this.lvAttributes = new System.Windows.Forms.ListView();
             this.clAttDisplayName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clAttLogicalName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clAttType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.btnFilter = new System.Windows.Forms.Button();
-            this.btnMappings = new System.Windows.Forms.Button();
+            this.clAttComment = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.gbEntities.SuspendLayout();
             this.pnlHeader.SuspendLayout();
             this.gbSettings.SuspendLayout();
@@ -79,7 +80,7 @@
             this.gbEntities.Font = new System.Drawing.Font("Segoe UI", 8.25F);
             this.gbEntities.Location = new System.Drawing.Point(3, 3);
             this.gbEntities.Name = "gbEntities";
-            this.gbEntities.Size = new System.Drawing.Size(394, 469);
+            this.gbEntities.Size = new System.Drawing.Size(321, 469);
             this.gbEntities.TabIndex = 91;
             this.gbEntities.TabStop = false;
             this.gbEntities.Text = "Available entities";
@@ -97,7 +98,7 @@
             this.lvEntities.Location = new System.Drawing.Point(6, 21);
             this.lvEntities.MultiSelect = false;
             this.lvEntities.Name = "lvEntities";
-            this.lvEntities.Size = new System.Drawing.Size(382, 442);
+            this.lvEntities.Size = new System.Drawing.Size(309, 442);
             this.lvEntities.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvEntities.TabIndex = 64;
             this.lvEntities.UseCompatibleStateImageBehavior = false;
@@ -295,8 +296,8 @@
             // pnlBody
             // 
             this.pnlBody.ColumnCount = 2;
-            this.pnlBody.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.pnlBody.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.pnlBody.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 40.875F));
+            this.pnlBody.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 59.125F));
             this.pnlBody.Controls.Add(this.gbAttributes, 1, 0);
             this.pnlBody.Controls.Add(this.gbEntities, 0, 0);
             this.pnlBody.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -319,12 +320,34 @@
             this.gbAttributes.Controls.Add(this.lvAttributes);
             this.gbAttributes.Enabled = false;
             this.gbAttributes.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.gbAttributes.Location = new System.Drawing.Point(403, 3);
+            this.gbAttributes.Location = new System.Drawing.Point(330, 3);
             this.gbAttributes.Name = "gbAttributes";
-            this.gbAttributes.Size = new System.Drawing.Size(394, 469);
+            this.gbAttributes.Size = new System.Drawing.Size(467, 469);
             this.gbAttributes.TabIndex = 92;
             this.gbAttributes.TabStop = false;
             this.gbAttributes.Text = "Available attributes";
+            // 
+            // btnMappings
+            // 
+            this.btnMappings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnMappings.Location = new System.Drawing.Point(330, 17);
+            this.btnMappings.Name = "btnMappings";
+            this.btnMappings.Size = new System.Drawing.Size(72, 23);
+            this.btnMappings.TabIndex = 102;
+            this.btnMappings.Text = "Mappings";
+            this.btnMappings.UseVisualStyleBackColor = true;
+            this.btnMappings.Click += new System.EventHandler(this.btnMappings_Click);
+            // 
+            // btnFilter
+            // 
+            this.btnFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnFilter.Location = new System.Drawing.Point(408, 17);
+            this.btnFilter.Name = "btnFilter";
+            this.btnFilter.Size = new System.Drawing.Size(53, 23);
+            this.btnFilter.TabIndex = 101;
+            this.btnFilter.Text = "Filters";
+            this.btnFilter.UseVisualStyleBackColor = true;
+            this.btnFilter.Click += new System.EventHandler(this.btnFilter_Click);
             // 
             // chkAllAttributes
             // 
@@ -348,12 +371,13 @@
             this.lvAttributes.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.clAttDisplayName,
             this.clAttLogicalName,
-            this.clAttType});
+            this.clAttType,
+            this.clAttComment});
             this.lvAttributes.FullRowSelect = true;
             this.lvAttributes.HideSelection = false;
             this.lvAttributes.Location = new System.Drawing.Point(6, 44);
             this.lvAttributes.Name = "lvAttributes";
-            this.lvAttributes.Size = new System.Drawing.Size(382, 419);
+            this.lvAttributes.Size = new System.Drawing.Size(455, 419);
             this.lvAttributes.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvAttributes.TabIndex = 64;
             this.lvAttributes.UseCompatibleStateImageBehavior = false;
@@ -375,27 +399,9 @@
             this.clAttType.Text = "Type";
             this.clAttType.Width = 100;
             // 
-            // btnFilter
+            // clAttComment
             // 
-            this.btnFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnFilter.Location = new System.Drawing.Point(335, 17);
-            this.btnFilter.Name = "btnFilter";
-            this.btnFilter.Size = new System.Drawing.Size(53, 23);
-            this.btnFilter.TabIndex = 101;
-            this.btnFilter.Text = "Filters";
-            this.btnFilter.UseVisualStyleBackColor = true;
-            this.btnFilter.Click += new System.EventHandler(this.btnFilter_Click);
-            // 
-            // btnMappings
-            // 
-            this.btnMappings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnMappings.Location = new System.Drawing.Point(257, 17);
-            this.btnMappings.Name = "btnMappings";
-            this.btnMappings.Size = new System.Drawing.Size(72, 23);
-            this.btnMappings.TabIndex = 102;
-            this.btnMappings.Text = "Mappings";
-            this.btnMappings.UseVisualStyleBackColor = true;
-            this.btnMappings.Click += new System.EventHandler(this.btnMappings_Click);
+            this.clAttComment.Text = "Comment";
             // 
             // DataTransporter
             // 
@@ -452,5 +458,6 @@
         private System.Windows.Forms.ColumnHeader clAttType;
         private System.Windows.Forms.Button btnMappings;
         private System.Windows.Forms.Button btnFilter;
+        private System.Windows.Forms.ColumnHeader clAttComment;
     }
 }

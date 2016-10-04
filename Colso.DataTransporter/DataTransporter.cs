@@ -333,7 +333,12 @@ namespace Colso.DataTransporter
                             // Prepare list of items
                             var sourceAttributesList = new List<ListViewItem>();
 
-                            foreach (AttributeMetadata attribute in entitymeta.Attributes.Where(a => a.IsValidForUpdate != null && a.IsValidForUpdate.Value))
+                            // Only use create/editable attributes
+                            var attributes = entitymeta.Attributes
+                                .Where(a => (a.IsValidForCreate != null && a.IsValidForCreate.Value) || (a.IsValidForUpdate != null && a.IsValidForUpdate.Value))
+                                .ToArray();
+
+                            foreach (AttributeMetadata attribute in attributes)
                             {
                                 // Skip "statecode", "statuscode" (should be updated via SetStateRequest)
                                 if (!attribute.LogicalName.Equals("statecode")
@@ -346,11 +351,19 @@ namespace Colso.DataTransporter
                                     item.SubItems.Add(attribute.LogicalName);
                                     item.SubItems.Add(typename.EndsWith("Type") ? typename.Substring(0, typename.LastIndexOf("Type")) : typename);
 
-                                    if (!attribute.IsCustomizable.Value)
+                                    if (attribute.IsValidForCreate == null || !attribute.IsValidForCreate.Value)
                                     {
                                         item.ForeColor = Color.Gray;
-                                        item.ToolTipText = "This attribute has not been defined as customizable";
+                                        item.ToolTipText = "This attribute is not valid for create";
+                                        item.SubItems.Add(item.ToolTipText);
                                     }
+                                    else if (attribute.IsValidForUpdate == null || !attribute.IsValidForUpdate.Value)
+                                    {
+                                        item.ForeColor = Color.Gray;
+                                        item.ToolTipText = "This attribute is not valid for update";
+                                        item.SubItems.Add(item.ToolTipText);
+                                    }
+
                                     item.Checked = true;
                                     sourceAttributesList.Add(item);
                                 }

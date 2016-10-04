@@ -38,6 +38,8 @@ namespace Colso.DataTransporter
         private IOrganizationService targetService;
 
         private bool workingstate = false;
+        private string currentFilter = string.Empty;
+        private List<Tuple<EntityReference, EntityReference>> currentMappings = new List<Tuple<EntityReference, EntityReference>>();
         private Dictionary<string, int> lvSortcolumns = new Dictionary<string, int>();
 
         #endregion Variables
@@ -192,6 +194,21 @@ namespace Colso.DataTransporter
             lvAttributes.Items.OfType<ListViewItem>().ToList().ForEach(item => item.Checked = chkAllAttributes.Checked);
         }
 
+        private void btnMappings_Click(object sender, EventArgs e)
+        {
+            var entities = lvEntities.Items.Cast<ListViewItem>().ToArray();
+            var mappingDialog = new MappingList(entities, currentMappings);
+            mappingDialog.ShowDialog(ParentForm);
+            currentMappings = mappingDialog.GetMappingList();
+        }
+
+        private void btnFilter_Click(object sender, EventArgs e)
+        {
+            var filterDialog = new FilterEditor(currentFilter);
+            filterDialog.ShowDialog(ParentForm);
+            currentFilter = filterDialog.Filter;
+        }
+
         #endregion Form events
 
         #region Methods
@@ -293,6 +310,7 @@ namespace Colso.DataTransporter
             if (!workingstate)
             {
                 // Reinit other controls
+                currentFilter = string.Empty;
                 lvAttributes.Items.Clear();
 
                 if (lvEntities.SelectedItems.Count > 0)
@@ -317,20 +335,25 @@ namespace Colso.DataTransporter
 
                             foreach (AttributeMetadata attribute in entitymeta.Attributes.Where(a => a.IsValidForUpdate != null && a.IsValidForUpdate.Value))
                             {
-                                var name = attribute.DisplayName.UserLocalizedLabel == null ? string.Empty : attribute.DisplayName.UserLocalizedLabel.Label;
-                                var typename = attribute.AttributeTypeName == null ? string.Empty : attribute.AttributeTypeName.Value;
-                                var item = new ListViewItem(name);
-                                item.Tag = attribute;
-                                item.SubItems.Add(attribute.LogicalName);
-                                item.SubItems.Add(typename.EndsWith("Type") ? typename.Substring(0, typename.LastIndexOf("Type")) : typename);
-
-                                if (!attribute.IsCustomizable.Value)
+                                // Skip "statecode", "statuscode" (should be updated via SetStateRequest)
+                                if (!attribute.LogicalName.Equals("statecode")
+                                && !attribute.LogicalName.Equals("statuscode"))
                                 {
-                                    item.ForeColor = Color.Gray;
-                                    item.ToolTipText = "This attribute has not been defined as customizable";
+                                    var name = attribute.DisplayName.UserLocalizedLabel == null ? string.Empty : attribute.DisplayName.UserLocalizedLabel.Label;
+                                    var typename = attribute.AttributeTypeName == null ? string.Empty : attribute.AttributeTypeName.Value;
+                                    var item = new ListViewItem(name);
+                                    item.Tag = attribute;
+                                    item.SubItems.Add(attribute.LogicalName);
+                                    item.SubItems.Add(typename.EndsWith("Type") ? typename.Substring(0, typename.LastIndexOf("Type")) : typename);
+
+                                    if (!attribute.IsCustomizable.Value)
+                                    {
+                                        item.ForeColor = Color.Gray;
+                                        item.ToolTipText = "This attribute has not been defined as customizable";
+                                    }
+                                    item.Checked = true;
+                                    sourceAttributesList.Add(item);
                                 }
-                                item.Checked = true;
-                                sourceAttributesList.Add(item);
                             }
 
                             e.Result = sourceAttributesList;
@@ -384,6 +407,13 @@ namespace Colso.DataTransporter
                 return;
             }
 
+            if (cbDelete.Checked && !string.IsNullOrEmpty(currentFilter))
+            {
+                var result = MessageBox.Show("You have a filter applied and checked the \"Delete\" flag. All records on the target environment which don't match the filtered soure set will be deleted! Are you sure you want to continue?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                if (result.Equals(DialogResult.No)) 
+                    return;
+            }
+
             ManageWorkingState(true);
 
             informationPanel = InformationPanel.GetInformationPanel(this, "Transfering records...", 340, 150);
@@ -412,19 +442,14 @@ namespace Colso.DataTransporter
                     try
                     {
                         var entity = new AppCode.EntityRecord(entitymeta, attributes, transfermode, service, targetService);
+                        entity.Filter = currentFilter;
+                        entity.Mappings = currentMappings;
                         entity.OnStatusMessage += Entity_OnStatusMessage;
                         entity.Transfer();
                     }
                     catch (FaultException<OrganizationServiceFault> error)
                     {
-                        if (error.HResult == -2146233087)
-                        {
-                            errors.Add(new Tuple<string, string>(name, "The record you tried to transfer already exists but you don't have read access to it. Get access to this record on the target organization to update it"));
-                        }
-                        else
-                        {
-                            errors.Add(new Tuple<string, string>(name, error.Message));
-                        }
+                        errors.Add(new Tuple<string, string>(name, error.Message));
                     }
                 }
 

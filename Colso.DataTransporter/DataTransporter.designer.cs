@@ -58,6 +58,8 @@
             this.clAttDisplayName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clAttLogicalName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clAttType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.btnFilter = new System.Windows.Forms.Button();
+            this.btnMappings = new System.Windows.Forms.Button();
             this.gbEntities.SuspendLayout();
             this.pnlHeader.SuspendLayout();
             this.gbSettings.SuspendLayout();
@@ -311,6 +313,8 @@
             this.gbAttributes.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbAttributes.Controls.Add(this.btnMappings);
+            this.gbAttributes.Controls.Add(this.btnFilter);
             this.gbAttributes.Controls.Add(this.chkAllAttributes);
             this.gbAttributes.Controls.Add(this.lvAttributes);
             this.gbAttributes.Enabled = false;
@@ -371,6 +375,28 @@
             this.clAttType.Text = "Type";
             this.clAttType.Width = 100;
             // 
+            // btnFilter
+            // 
+            this.btnFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnFilter.Location = new System.Drawing.Point(335, 17);
+            this.btnFilter.Name = "btnFilter";
+            this.btnFilter.Size = new System.Drawing.Size(53, 23);
+            this.btnFilter.TabIndex = 101;
+            this.btnFilter.Text = "Filters";
+            this.btnFilter.UseVisualStyleBackColor = true;
+            this.btnFilter.Click += new System.EventHandler(this.btnFilter_Click);
+            // 
+            // btnMappings
+            // 
+            this.btnMappings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnMappings.Location = new System.Drawing.Point(257, 17);
+            this.btnMappings.Name = "btnMappings";
+            this.btnMappings.Size = new System.Drawing.Size(72, 23);
+            this.btnMappings.TabIndex = 102;
+            this.btnMappings.Text = "Mappings";
+            this.btnMappings.UseVisualStyleBackColor = true;
+            this.btnMappings.Click += new System.EventHandler(this.btnMappings_Click);
+            // 
             // DataTransporter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -424,5 +450,7 @@
         private System.Windows.Forms.ColumnHeader clAttLogicalName;
         private System.Windows.Forms.CheckBox chkAllAttributes;
         private System.Windows.Forms.ColumnHeader clAttType;
+        private System.Windows.Forms.Button btnMappings;
+        private System.Windows.Forms.Button btnFilter;
     }
 }

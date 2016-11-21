@@ -16,7 +16,7 @@ namespace Colso.DataTransporter.Forms
         public string Filter
         {
             get {
-                return txtFilter.Text;
+                return txtFilter.Text.Trim();
             }
             set
             {

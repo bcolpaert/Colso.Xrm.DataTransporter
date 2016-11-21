@@ -56,7 +56,7 @@
             this.label2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.Location = new System.Drawing.Point(6, 29);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(339, 13);
+            this.label2.Size = new System.Drawing.Size(372, 13);
             this.label2.TabIndex = 1;
             this.label2.Text = "This list indicates errors that occured when saving checked dashboards";
             // 
@@ -78,6 +78,7 @@
             this.lvErrors.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.columnHeader1,
             this.columnHeader2});
+            this.lvErrors.LabelEdit = true;
             this.lvErrors.Location = new System.Drawing.Point(12, 66);
             this.lvErrors.Name = "lvErrors";
             this.lvErrors.Size = new System.Drawing.Size(656, 235);
@@ -87,13 +88,13 @@
             // 
             // columnHeader1
             // 
-            this.columnHeader1.Text = "Dashboard";
-            this.columnHeader1.Width = 200;
+            this.columnHeader1.Text = "Entity";
+            this.columnHeader1.Width = 160;
             // 
             // columnHeader2
             // 
             this.columnHeader2.Text = "Error";
-            this.columnHeader2.Width = 430;
+            this.columnHeader2.Width = 480;
             // 
             // btnClose
             // 

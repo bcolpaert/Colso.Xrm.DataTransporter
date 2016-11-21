@@ -42,6 +42,9 @@ namespace Colso.DataTransporter.AppCode
         public string Filter { get; set; }
         public List<Tuple<EntityReference, EntityReference>> Mappings { get; set; }
 
+        public string Name { get; }
+        public List<string> Messages { get; }
+
         public EntityRecord(EntityMetadata entity, List<AttributeMetadata> attributes, TransferMode mode, IOrganizationService sourceService, IOrganizationService targetService)
         {
             if (sourceEntitiesMetadata == null)
@@ -64,9 +67,11 @@ namespace Colso.DataTransporter.AppCode
             this.transfermode = mode;
             this.sourceService = sourceService;
             this.targetService = targetService;
+            this.Name = entity.DisplayName.UserLocalizedLabel == null ? string.Empty : entity.DisplayName.UserLocalizedLabel.Label;
+            this.Messages = new List<string>();
         }
 
-        public void Transfer()
+    public void Transfer()
         {
             RetrieveData();
             DoTransfer();
@@ -102,6 +107,7 @@ namespace Colso.DataTransporter.AppCode
             var updateCount = 0;
             var deleteCount = 0;
             var skipCount = 0;
+            var errorCount = 0;
             var totalTaskCount = sourceRecords.Entities.Count;
 
             // Delete the missing source records in the target environment
@@ -123,35 +129,43 @@ namespace Colso.DataTransporter.AppCode
             // Transfer records
             for (int i = 0; i < recordCount; i++)
             {
-                var record = sourceRecords.Entities[i];
-                var recordexist = targetRecords.Entities.Any(e => e.Id.Equals(record.Id));
-                var name = entity.DisplayName.UserLocalizedLabel == null ? string.Empty : entity.DisplayName.UserLocalizedLabel.Label;
-                SetProgress((i + missingCount) / totalTaskCount, "Transfering entity '{0}'...", name);
+                try
+                {
+                    var record = sourceRecords.Entities[i];
+                    var recordexist = targetRecords.Entities.Any(e => e.Id.Equals(record.Id));
+                    var name = entity.DisplayName.UserLocalizedLabel == null ? string.Empty : entity.DisplayName.UserLocalizedLabel.Label;
+                    SetProgress((i + missingCount) / totalTaskCount, "Transfering entity '{0}'...", name);
 
-                if (recordexist && ((transfermode & TransferMode.Update) == TransferMode.Update))
-                {
-                    // Update existing record
-                    SetStatusMessage("{0}/{1}: update record", i + 1, recordCount);
-                    ApplyMappings(record);
-                    targetService.Update(record);
-                    updateCount++;
+                    if (recordexist && ((transfermode & TransferMode.Update) == TransferMode.Update))
+                    {
+                        // Update existing record
+                        SetStatusMessage("{0}/{1}: update record", i + 1, recordCount);
+                        ApplyMappings(record);
+                        targetService.Update(record);
+                        updateCount++;
+                    }
+                    else if (!recordexist && ((transfermode & TransferMode.Create) == TransferMode.Create))
+                    {
+                        // Create missing record
+                        SetStatusMessage("{0}/{1}: create record", i + 1, recordCount);
+                        ApplyMappings(record);
+                        targetService.Create(record);
+                        createCount++;
+                    }
+                    else
+                    {
+                        SetStatusMessage("{0}/{1}: skip record", i + 1, recordCount);
+                        skipCount++;
+                    }
                 }
-                else if (!recordexist && ((transfermode & TransferMode.Create) == TransferMode.Create))
+                catch (System.ServiceModel.FaultException<OrganizationServiceFault> error)
                 {
-                    // Create missing record
-                    SetStatusMessage("{0}/{1}: create record", i + 1, recordCount);
-                    ApplyMappings(record);
-                    targetService.Create(record);
-                    createCount++;
-                }
-                else
-                {
-                    SetStatusMessage("{0}/{1}: skip record", i + 1, recordCount);
-                    skipCount++;
+                    this.Messages.Add(error.Message);
+                    errorCount++;
                 }
             }
 
-            SetStatusMessage("{0} created; {1} updated; {2} deleted; {3} skipped", createCount, updateCount, deleteCount, skipCount);
+            SetStatusMessage("{0} created; {1} updated; {2} deleted; {3} skipped; {4} errors", createCount, updateCount, deleteCount, skipCount, errorCount);
         }
 
         private void ApplyMappings(Entity e)
@@ -161,7 +175,7 @@ namespace Colso.DataTransporter.AppCode
 
             foreach (var map in Mappings)
             {
-                var matches = references.Where(r => r.LogicalName == map.Item1.LogicalName && r.Id == map.Item1.Id).ToArray();
+                var matches = references.Where(r => r.LogicalName == map.Item1.LogicalName && r.Id.Equals(map.Item1.Id)).ToArray();
 
                 foreach (var match in matches)
                     match.Id = map.Item2.Id;
@@ -204,6 +218,7 @@ namespace Colso.DataTransporter.AppCode
             {
                 tempCollection = service.RetrieveMultiple((QueryBase)new FetchExpression(this.CreateXml(fetchXml, cookie, page, pageSize)));
                 ++page;
+                cookie = tempCollection.PagingCookie;
                 collection.Entities.AddRange((IEnumerable<Entity>)tempCollection.Entities);
             }
             while (tempCollection.MoreRecords);
@@ -262,7 +277,7 @@ namespace Colso.DataTransporter.AppCode
             }
 
             // Add the filter
-            filter = filter.Trim();
+            filter = filter?.Trim();
             if (!string.IsNullOrEmpty(filter))
             {
                 var filterdoc = new XmlDocument();

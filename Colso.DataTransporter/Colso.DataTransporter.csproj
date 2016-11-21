@@ -115,6 +115,7 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
+    <Reference Include="System.Xml.Serialization" />
     <Reference Include="XrmToolBox, Version=1.2016.6.29, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\XrmToolBoxPackage.1.2016.6.29\lib\net452\XrmToolBox.exe</HintPath>
       <Private>True</Private>
@@ -131,6 +132,7 @@
     <Compile Include="AppCode\MetadataHelper.cs" />
     <Compile Include="AppCode\CrmExceptionHelper.cs" />
     <Compile Include="AppCode\ProgressEventArgs.cs" />
+    <Compile Include="AppCode\SettingsManager.cs" />
     <Compile Include="AppCode\StatusMessageEventArgs.cs" />
     <Compile Include="DataTransporter.cs">
       <SubType>UserControl</SubType>

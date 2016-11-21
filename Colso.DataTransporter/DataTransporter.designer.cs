@@ -330,6 +330,7 @@
             // btnMappings
             // 
             this.btnMappings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnMappings.ForeColor = System.Drawing.SystemColors.ControlText;
             this.btnMappings.Location = new System.Drawing.Point(330, 17);
             this.btnMappings.Name = "btnMappings";
             this.btnMappings.Size = new System.Drawing.Size(72, 23);

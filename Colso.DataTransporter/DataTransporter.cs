@@ -38,14 +38,14 @@ namespace Colso.DataTransporter
         private IOrganizationService targetService;
 
         private bool workingstate = false;
-        private string currentFilter = string.Empty;
-        private List<Tuple<EntityReference, EntityReference>> currentMappings = new List<Tuple<EntityReference, EntityReference>>();
-        private Dictionary<string, int> lvSortcolumns = new Dictionary<string, int>();
+        private Guid organisationid;
+        private Settings settings;
 
         #endregion Variables
 
         public DataTransporter()
         {
+            SettingsManager.GetConfigData(out settings);
             InitializeComponent();
         }
 
@@ -91,6 +91,9 @@ namespace Colso.DataTransporter
 
         public void ClosingPlugin(PluginCloseInfo info)
         {
+            // First save settings file
+            SettingsManager.SaveConfigData(settings);
+
             if (info.FormReason != CloseReason.None ||
                 info.ToolBoxReason == ToolBoxCloseReason.CloseAll ||
                 info.ToolBoxReason == ToolBoxCloseReason.CloseAllExceptActive)
@@ -105,13 +108,19 @@ namespace Colso.DataTransporter
         {
             if (actionName == "TargetOrganization")
             {
+                SetConnectionLabel(connectionDetail.ConnectionName, "Target");
                 targetService = newService;
-                SetConnectionLabel(connectionDetail, "Target");
             }
             else
             {
+                organisationid = connectionDetail.ConnectionId.Value;
+                SetConnectionLabel(connectionDetail.ConnectionName, "Source");
                 service = newService;
-                SetConnectionLabel(connectionDetail, "Source");
+                // init buttons -> value based on connection
+                InitMappings();
+                InitFilter();
+                // Save settings file
+                SettingsManager.SaveConfigData(settings);
             }
         }
 
@@ -197,33 +206,68 @@ namespace Colso.DataTransporter
         private void btnMappings_Click(object sender, EventArgs e)
         {
             var entities = lvEntities.Items.Cast<ListViewItem>().ToArray();
-            var mappingDialog = new MappingList(entities, currentMappings);
+            var mappingDialog = new MappingList(entities, settings[organisationid].Mappings);
             mappingDialog.ShowDialog(ParentForm);
-            currentMappings = mappingDialog.GetMappingList();
+            settings[organisationid].Mappings = mappingDialog.GetMappingList();
+            InitMappings();
         }
 
         private void btnFilter_Click(object sender, EventArgs e)
         {
-            var filterDialog = new FilterEditor(currentFilter);
-            filterDialog.ShowDialog(ParentForm);
-            currentFilter = filterDialog.Filter;
+            if (lvEntities.SelectedItems.Count > 0)
+            {
+                var entityitem = lvEntities.SelectedItems[0];
+
+                if (entityitem != null && entityitem.Tag != null)
+                {
+                    var filter = string.Empty;
+                    var entity = (EntityMetadata)entityitem.Tag;
+                    var filterDialog = new FilterEditor(filter = settings[organisationid][entity.LogicalName].Filter);
+                    filterDialog.ShowDialog(ParentForm);
+                    settings[organisationid][entity.LogicalName].Filter = filterDialog.Filter;
+                    InitFilter();
+                }
+            }
         }
 
         #endregion Form events
 
         #region Methods
 
-        private void SetConnectionLabel(ConnectionDetail detail, string serviceType)
+        private void InitMappings()
+        {
+            btnMappings.ForeColor = settings[organisationid].Mappings.Count == 0 ? Color.Black : Color.Blue;
+        }
+
+        private void InitFilter()
+        {
+            string filter = null;
+
+            if (lvEntities.SelectedItems.Count > 0)
+            {
+                var entityitem = lvEntities.SelectedItems[0];
+
+                if (entityitem != null && entityitem.Tag != null)
+                {
+                    var entity = (EntityMetadata)entityitem.Tag;
+                    filter = settings[organisationid][entity.LogicalName].Filter;
+                }
+            }
+
+            btnFilter.ForeColor = string.IsNullOrEmpty(filter) ? Color.Black : Color.Blue;
+        }
+
+        private void SetConnectionLabel(string name, string serviceType)
         {
             switch (serviceType)
             {
                 case "Source":
-                    lbSourceValue.Text = detail.ConnectionName;
+                    lbSourceValue.Text = name;
                     lbSourceValue.ForeColor = Color.Green;
                     break;
 
                 case "Target":
-                    lbTargetValue.Text = detail.ConnectionName;
+                    lbTargetValue.Text = name;
                     lbTargetValue.ForeColor = Color.Green;
                     break;
             }
@@ -310,8 +354,9 @@ namespace Colso.DataTransporter
             if (!workingstate)
             {
                 // Reinit other controls
-                currentFilter = string.Empty;
                 lvAttributes.Items.Clear();
+                chkAllAttributes.Checked = true;
+                InitFilter();
 
                 if (lvEntities.SelectedItems.Count > 0)
                 {
@@ -330,12 +375,16 @@ namespace Colso.DataTransporter
                             // Retrieve 
                             var entitymeta = MetadataHelper.RetrieveEntity(entity.LogicalName, service);
 
+                            // Get attribute checked settings
+                            var unmarkedattributes = settings[organisationid][entity.LogicalName].UnmarkedAttributes;
+
                             // Prepare list of items
                             var sourceAttributesList = new List<ListViewItem>();
 
-                            // Only use create/editable attributes
+                            // Only use create/editable attributes && properties which are valid for read
                             var attributes = entitymeta.Attributes
                                 .Where(a => (a.IsValidForCreate != null && a.IsValidForCreate.Value) || (a.IsValidForUpdate != null && a.IsValidForUpdate.Value))
+                                .Where(a => a.IsValidForRead != null && a.IsValidForRead.Value)
                                 .ToArray();
 
                             foreach (AttributeMetadata attribute in attributes)
@@ -364,7 +413,7 @@ namespace Colso.DataTransporter
                                         item.SubItems.Add(item.ToolTipText);
                                     }
 
-                                    item.Checked = true;
+                                    item.Checked = !unmarkedattributes.Contains(attribute.LogicalName);
                                     sourceAttributesList.Add(item);
                                 }
                             }
@@ -420,17 +469,32 @@ namespace Colso.DataTransporter
                 return;
             }
 
-            if (cbDelete.Checked && !string.IsNullOrEmpty(currentFilter))
+            if (cbDelete.Checked)
             {
-                var result = MessageBox.Show("You have a filter applied and checked the \"Delete\" flag. All records on the target environment which don't match the filtered soure set will be deleted! Are you sure you want to continue?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
-                if (result.Equals(DialogResult.No)) 
-                    return;
+                foreach (ListViewItem entityitem in lvEntities.SelectedItems)
+                {
+                    if (entityitem != null && entityitem.Tag != null)
+                    {
+                        var entity = (EntityMetadata)entityitem.Tag;
+
+                        if (!string.IsNullOrEmpty(settings[organisationid][entity.LogicalName].Filter))
+                        {
+                            var msg = string.Format("You have a filter applied on \"{0}\" and checked the \"Delete\" flag. All records on the target environment which don't match the filtered soure set will be deleted! Are you sure you want to continue?", entity.LogicalName);
+                            var result = MessageBox.Show(msg, "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+                            if (result.Equals(DialogResult.No))
+                                return;
+                        }
+                    }
+                }
             }
 
             ManageWorkingState(true);
 
             informationPanel = InformationPanel.GetInformationPanel(this, "Transfering records...", 340, 150);
             SendMessageToStatusBar(this, new StatusBarMessageEventArgs("Start transfering records..."));
+
+            // Good time to save the attributes
+            SaveUnmarkedAttributes();
 
             var transfermode = EntityRecord.TransferMode.None;
             if (cbCreate.Checked) transfermode |= EntityRecord.TransferMode.Create;
@@ -448,21 +512,21 @@ namespace Colso.DataTransporter
                 {
                     var entitymeta = entities[i];
                     var attributes = lvAttributes.CheckedItems.Cast<ListViewItem>().Select(v => (AttributeMetadata)v.Tag).ToList();
+                    var entity = new AppCode.EntityRecord(entitymeta, attributes, transfermode, service, targetService);
 
-                    var name = entitymeta.DisplayName.UserLocalizedLabel == null ? string.Empty : entitymeta.DisplayName.UserLocalizedLabel.Label;
-                    worker.ReportProgress((i / entities.Count), string.Format("Transfering entity '{0}'...", name));
+                    worker.ReportProgress((i / entities.Count), string.Format("Transfering entity '{0}'...", entity.Name));
 
                     try
                     {
-                        var entity = new AppCode.EntityRecord(entitymeta, attributes, transfermode, service, targetService);
-                        entity.Filter = currentFilter;
-                        entity.Mappings = currentMappings;
+                        entity.Filter = settings[organisationid][entitymeta.LogicalName].Filter;
+                        entity.Mappings = settings[organisationid].Mappings;
                         entity.OnStatusMessage += Entity_OnStatusMessage;
                         entity.Transfer();
+                        errors.AddRange(entity.Messages.Select(m => new Tuple<string, string>(entity.Name, m)));
                     }
                     catch (FaultException<OrganizationServiceFault> error)
                     {
-                        errors.Add(new Tuple<string, string>(name, error.Message));
+                        errors.Add(new Tuple<string, string>(entity.Name, error.Message));
                     }
                 }
 
@@ -499,14 +563,14 @@ namespace Colso.DataTransporter
         private void SetListViewSorting(ListView listview, int column)
         {
             int currentSortcolumn = -1;
-            if (lvSortcolumns.ContainsKey(listview.Name))
-                currentSortcolumn = lvSortcolumns[listview.Name];
+            if (settings[organisationid].Sortcolumns.ContainsKey(listview.Name))
+                currentSortcolumn = settings[organisationid].Sortcolumns[listview.Name];
             else
-                lvSortcolumns.Add(listview.Name, currentSortcolumn);
+                settings[organisationid].Sortcolumns.Add(listview.Name, currentSortcolumn);
 
             if (currentSortcolumn != column)
             {
-                lvSortcolumns[listview.Name] = column;
+                settings[organisationid].Sortcolumns[listview.Name] = column;
                 listview.Sorting = SortOrder.Ascending;
             }
             else
@@ -518,6 +582,21 @@ namespace Colso.DataTransporter
             }
 
             listview.ListViewItemSorter = new ListViewItemComparer(column, listview.Sorting);
+        }
+
+        private void SaveUnmarkedAttributes()
+        {
+            if (lvEntities.SelectedItems.Count > 0)
+            {
+                var entityitem = lvEntities.SelectedItems[0];
+
+                if (entityitem != null && entityitem.Tag != null)
+                {
+                    var entity = (EntityMetadata)entityitem.Tag;
+                    var attributes = lvAttributes.Items.Cast<ListViewItem>().Where(i => !i.Checked).Select(v => (AttributeMetadata)v.Tag).Select(a => a.LogicalName).ToList();
+                    settings[organisationid][entity.LogicalName].UnmarkedAttributes = attributes;
+                }
+            }
         }
 
         #endregion Methods

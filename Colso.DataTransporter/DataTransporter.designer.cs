@@ -48,7 +48,7 @@
             this.tsMain = new System.Windows.Forms.ToolStrip();
             this.tsbCloseThisTab = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
-            this.tsbLoadDashboards = new System.Windows.Forms.ToolStripButton();
+            this.tsbRefreshEntities = new System.Windows.Forms.ToolStripButton();
             this.tsbTransferDashboards = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.pnlBody = new System.Windows.Forms.TableLayoutPanel();
@@ -244,7 +244,7 @@
             this.tsMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.tsbCloseThisTab,
             this.toolStripSeparator2,
-            this.tsbLoadDashboards,
+            this.tsbRefreshEntities,
             this.tsbTransferDashboards,
             this.toolStripSeparator1});
             this.tsMain.Location = new System.Drawing.Point(0, 0);
@@ -255,13 +255,12 @@
             // 
             // tsbCloseThisTab
             // 
-            this.tsbCloseThisTab.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
             this.tsbCloseThisTab.Font = new System.Drawing.Font("Segoe UI", 8.25F);
             this.tsbCloseThisTab.Image = ((System.Drawing.Image)(resources.GetObject("tsbCloseThisTab.Image")));
             this.tsbCloseThisTab.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbCloseThisTab.Name = "tsbCloseThisTab";
-            this.tsbCloseThisTab.Size = new System.Drawing.Size(23, 22);
-            this.tsbCloseThisTab.Text = "Close this tab";
+            this.tsbCloseThisTab.Size = new System.Drawing.Size(55, 22);
+            this.tsbCloseThisTab.Text = "Close";
             this.tsbCloseThisTab.Click += new System.EventHandler(this.tsbCloseThisTab_Click);
             // 
             // toolStripSeparator2
@@ -269,19 +268,19 @@
             this.toolStripSeparator2.Name = "toolStripSeparator2";
             this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
             // 
-            // tsbLoadDashboards
+            // tsbRefreshEntities
             // 
-            this.tsbLoadDashboards.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.tsbLoadDashboards.Image = global::Colso.DataTransporter.Properties.Resources.entities;
-            this.tsbLoadDashboards.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbLoadDashboards.Name = "tsbLoadDashboards";
-            this.tsbLoadDashboards.Size = new System.Drawing.Size(93, 22);
-            this.tsbLoadDashboards.Text = "Load Entities";
-            this.tsbLoadDashboards.Click += new System.EventHandler(this.tsbLoadEntities_Click);
+            this.tsbRefreshEntities.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.tsbRefreshEntities.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.entities;
+            this.tsbRefreshEntities.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbRefreshEntities.Name = "tsbRefreshEntities";
+            this.tsbRefreshEntities.Size = new System.Drawing.Size(107, 22);
+            this.tsbRefreshEntities.Text = "Refresh Entities";
+            this.tsbRefreshEntities.Click += new System.EventHandler(this.tsbRefreshEntities_Click);
             // 
             // tsbTransferDashboards
             // 
-            this.tsbTransferDashboards.Image = global::Colso.DataTransporter.Properties.Resources.export;
+            this.tsbTransferDashboards.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.export;
             this.tsbTransferDashboards.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbTransferDashboards.Name = "tsbTransferDashboards";
             this.tsbTransferDashboards.Size = new System.Drawing.Size(96, 22);
@@ -433,7 +432,7 @@
         private System.Windows.Forms.ToolStrip tsMain;
         private System.Windows.Forms.ToolStripButton tsbCloseThisTab;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
-        private System.Windows.Forms.ToolStripButton tsbLoadDashboards;
+        private System.Windows.Forms.ToolStripButton tsbRefreshEntities;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton tsbTransferDashboards;
         private System.Windows.Forms.ImageList viewImageList;

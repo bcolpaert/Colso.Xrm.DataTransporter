@@ -136,6 +136,9 @@ namespace Colso.DataTransporter.AppCode
                     var name = entity.DisplayName.UserLocalizedLabel == null ? string.Empty : entity.DisplayName.UserLocalizedLabel.Label;
                     SetProgress((i + missingCount) / totalTaskCount, "Transfering entity '{0}'...", name);
 
+                    // BC 22/11/2016: some attributes are auto added in the result query
+                    RemoveUnwantedAttributes(record);
+
                     if (recordexist && ((transfermode & TransferMode.Update) == TransferMode.Update))
                     {
                         // Update existing record
@@ -322,12 +325,23 @@ namespace Colso.DataTransporter.AppCode
 
             OnStatusMessage(this, new StatusMessageEventArgs(string.Format(format, args)));
         }
+
         private void SetProgress(int progress, string format, params object[] args)
         {
             // Make sure someone is listening to event
             if (OnProgress == null) return;
 
             OnProgress(this, new ProgressEventArgs(progress, string.Format(format, args)));
+        }
+
+        private void RemoveUnwantedAttributes(Entity entity)
+        {
+            // Make sure only selected attributes are send
+            var unwantedattributes = entity.Attributes.Where(ae => !this.attributes.Any(a => a.LogicalName.Equals(ae.Key))).Select(ae => ae.Key).ToArray();
+
+            // Remove unwanted attributes
+            foreach (var att in unwantedattributes)
+                entity.Attributes.Remove(att);
         }
     }
 }

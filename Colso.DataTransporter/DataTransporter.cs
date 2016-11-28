@@ -121,6 +121,8 @@ namespace Colso.DataTransporter
                 InitFilter();
                 // Save settings file
                 SettingsManager.SaveConfigData(settings);
+                // Load entities when source connection changes
+                PopulateEntities();
             }
         }
 
@@ -158,24 +160,9 @@ namespace Colso.DataTransporter
                 OnCloseTool(this, null);
         }
 
-        private void tsbLoadEntities_Click(object sender, EventArgs e)
+        private void tsbRefreshEntities_Click(object sender, EventArgs e)
         {
-            if (service == null)
-            {
-                if (OnRequestConnection != null)
-                {
-                    var args = new RequestConnectionEventArgs
-                    {
-                        ActionName = "Load",
-                        Control = this
-                    };
-                    OnRequestConnection(this, args);
-                }
-            }
-            else
-            {
-                PopulateEntities();
-            }
+            PopulateEntities();
         }
 
         private void tsbTransferData_Click(object sender, EventArgs e)
@@ -281,8 +268,32 @@ namespace Colso.DataTransporter
             Cursor = working ? Cursors.WaitCursor : Cursors.Default;
         }
 
+        private bool CheckConnection()
+        {
+            if (service == null)
+            {
+                if (OnRequestConnection != null)
+                {
+                    var args = new RequestConnectionEventArgs
+                    {
+                        ActionName = "Load",
+                        Control = this
+                    };
+                    OnRequestConnection(this, args);
+                }
+                return false;
+            }
+            else
+            {
+                return true;
+            }
+        }
+
         private void PopulateEntities()
         {
+            if (!CheckConnection())
+                return;
+
             if (!workingstate)
             {
                 // Reinit other controls

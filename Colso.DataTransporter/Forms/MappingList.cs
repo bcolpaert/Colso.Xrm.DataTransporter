@@ -1,4 +1,5 @@
-﻿using Microsoft.Xrm.Sdk;
+﻿using Colso.DataTransporter.AppCode;
+using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
 using System.Collections.Generic;
@@ -10,18 +11,18 @@ namespace Colso.DataTransporter.Forms
     public partial class MappingList : Form
     {
         protected ComboboxItem[] entities;
-        private List<Tuple<EntityReference, EntityReference>> mappings;
+        private List<Item<EntityReference, EntityReference>> mappings;
 
-        public MappingList(ListViewItem[] entities, List<Tuple<EntityReference, EntityReference>> mappings)
+        public MappingList(ListViewItem[] entities, List<Item<EntityReference, EntityReference>> mappings)
         {
-            this.entities = entities.Select(lvi => new ComboboxItem() { Text = lvi.Text, Value = lvi.SubItems[1].Text }).ToArray();
+            this.entities = entities.Select(lvi => new ComboboxItem() { Text = lvi.Text, Value = lvi.SubItems[1].Text }).OrderBy(e => e.Text).ToArray();
             this.mappings = mappings;
             InitializeComponent();
         }
 
-        public List<Tuple<EntityReference, EntityReference>> GetMappingList()
+        public List<Item<EntityReference, EntityReference>> GetMappingList()
         {
-            var list = new List<Tuple<EntityReference, EntityReference>>();
+            var list = new List<Item<EntityReference, EntityReference>>();
 
             foreach (DataGridViewRow m in dgvMappings.Rows)
             {
@@ -30,7 +31,7 @@ namespace Colso.DataTransporter.Forms
                     var entity = (string)m.Cells[0].Value;
                     var sourceid = Guid.Parse((string)m.Cells[1].Value);
                     var targetid = Guid.Parse((string)m.Cells[2].Value);
-                    list.Add(new Tuple<EntityReference, EntityReference>(new EntityReference(entity, sourceid), new EntityReference(entity, targetid)));
+                    list.Add(new Item<EntityReference, EntityReference>(new EntityReference(entity, sourceid), new EntityReference(entity, targetid)));
                 }
             }
 
@@ -54,7 +55,7 @@ namespace Colso.DataTransporter.Forms
             // Add mappings
             foreach (var m in mappings)
             {
-                var vals = new object[3] { m.Item1.LogicalName, m.Item1.Id.ToString(), m.Item2.Id.ToString() };
+                var vals = new object[3] { m.Key.LogicalName, m.Key.Id.ToString(), m.Value.Id.ToString() };
                 dgvMappings.Rows.Add(vals);
             }
         }

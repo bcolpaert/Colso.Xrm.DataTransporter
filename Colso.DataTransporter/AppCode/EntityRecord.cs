@@ -40,7 +40,7 @@ namespace Colso.DataTransporter.AppCode
         public event EventHandler OnProgress;
 
         public string Filter { get; set; }
-        public List<Tuple<EntityReference, EntityReference>> Mappings { get; set; }
+        public List<Item<EntityReference, EntityReference>> Mappings { get; set; }
 
         public string Name { get; }
         public List<string> Messages { get; }
@@ -178,10 +178,10 @@ namespace Colso.DataTransporter.AppCode
 
             foreach (var map in Mappings)
             {
-                var matches = references.Where(r => r.LogicalName == map.Item1.LogicalName && r.Id.Equals(map.Item1.Id)).ToArray();
+                var matches = references.Where(r => r.LogicalName == map.Key.LogicalName && r.Id.Equals(map.Value.Id)).ToArray();
 
                 foreach (var match in matches)
-                    match.Id = map.Item2.Id;
+                    match.Id = map.Value.Id;
             }
         }
 

@@ -402,6 +402,7 @@
             // clAttComment
             // 
             this.clAttComment.Text = "Comment";
+            this.clAttComment.Width = 200;
             // 
             // DataTransporter
             // 

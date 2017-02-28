@@ -98,7 +98,9 @@ namespace Colso.DataTransporter.AppCode
 
             foreach (EntityMetadata emd in response.EntityMetadata)
             {
-                if (emd.DisplayName.UserLocalizedLabel != null && (emd.IsCustomizable.Value || emd.IsManaged.Value == false))
+                // Get all entities
+                //if (emd.DisplayName.UserLocalizedLabel != null && (emd.IsCustomizable.Value || emd.IsManaged.Value == false))
+                if (emd.DisplayName.UserLocalizedLabel != null)
                 {
                     entities.Add(emd);
                 }

@@ -45,7 +45,7 @@ namespace Colso.DataTransporter
 
         public DataTransporter()
         {
-            SettingsManager.GetConfigData(out settings);
+            SettingFileHandler.GetConfigData(out settings);
             InitializeComponent();
         }
 
@@ -92,7 +92,7 @@ namespace Colso.DataTransporter
         public void ClosingPlugin(PluginCloseInfo info)
         {
             // First save settings file
-            SettingsManager.SaveConfigData(settings);
+            SettingFileHandler.SaveConfigData(settings);
 
             if (info.FormReason != CloseReason.None ||
                 info.ToolBoxReason == ToolBoxCloseReason.CloseAll ||
@@ -120,7 +120,7 @@ namespace Colso.DataTransporter
                 InitMappings();
                 InitFilter();
                 // Save settings file
-                SettingsManager.SaveConfigData(settings);
+                SettingFileHandler.SaveConfigData(settings);
                 // Load entities when source connection changes
                 PopulateEntities();
             }
@@ -462,6 +462,9 @@ namespace Colso.DataTransporter
 
         private void Transfer()
         {
+            // Good time to save the attributes
+            SaveUnmarkedAttributes();
+
             if (service == null || targetService == null)
             {
                 MessageBox.Show("You must select both a source and a target organization", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -504,9 +507,6 @@ namespace Colso.DataTransporter
             informationPanel = InformationPanel.GetInformationPanel(this, "Transfering records...", 340, 150);
             SendMessageToStatusBar(this, new StatusBarMessageEventArgs("Start transfering records..."));
 
-            // Good time to save the attributes
-            SaveUnmarkedAttributes();
-
             var transfermode = EntityRecord.TransferMode.None;
             if (cbCreate.Checked) transfermode |= EntityRecord.TransferMode.Create;
             if (cbUpdate.Checked) transfermode |= EntityRecord.TransferMode.Update;
@@ -517,7 +517,7 @@ namespace Colso.DataTransporter
             {
                 var worker = (BackgroundWorker)sender;
                 var entities = (List<EntityMetadata>)e.Argument;
-                var errors = new List<Tuple<string, string>>();
+                var errors = new List<Item<string, string>>();
 
                 for (int i = 0; i < entities.Count; i++)
                 {
@@ -533,11 +533,11 @@ namespace Colso.DataTransporter
                         entity.Mappings = settings[organisationid].Mappings;
                         entity.OnStatusMessage += Entity_OnStatusMessage;
                         entity.Transfer();
-                        errors.AddRange(entity.Messages.Select(m => new Tuple<string, string>(entity.Name, m)));
+                        errors.AddRange(entity.Messages.Select(m => new Item<string, string>(entity.Name, m)));
                     }
                     catch (FaultException<OrganizationServiceFault> error)
                     {
-                        errors.Add(new Tuple<string, string>(entity.Name, error.Message));
+                        errors.Add(new Item<string, string>(entity.Name, error.Message));
                     }
                 }
 
@@ -573,15 +573,16 @@ namespace Colso.DataTransporter
 
         private void SetListViewSorting(ListView listview, int column)
         {
-            int currentSortcolumn = -1;
-            if (settings[organisationid].Sortcolumns.ContainsKey(listview.Name))
-                currentSortcolumn = settings[organisationid].Sortcolumns[listview.Name];
-            else
-                settings[organisationid].Sortcolumns.Add(listview.Name, currentSortcolumn);
-
-            if (currentSortcolumn != column)
+            var setting = settings[organisationid].Sortcolumns.Where(s => s.Key == listview.Name).FirstOrDefault();
+            if (setting == null)
             {
-                settings[organisationid].Sortcolumns[listview.Name] = column;
+                setting = new Item<string, int>(listview.Name, -1);
+                settings[organisationid].Sortcolumns.Add(setting);
+            }
+
+            if (setting.Value != column)
+            {
+                setting.Value = column;
                 listview.Sorting = SortOrder.Ascending;
             }
             else

@@ -178,7 +178,7 @@ namespace Colso.DataTransporter.AppCode
 
             foreach (var map in Mappings)
             {
-                var matches = references.Where(r => r.LogicalName == map.Key.LogicalName && r.Id.Equals(map.Value.Id)).ToArray();
+                var matches = references.Where(r => r.LogicalName == map.Key.LogicalName && r.Id.Equals(map.Key.Id)).ToArray();
 
                 foreach (var match in matches)
                     match.Id = map.Value.Id;

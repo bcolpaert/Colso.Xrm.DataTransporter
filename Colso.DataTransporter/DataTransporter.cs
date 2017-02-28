@@ -550,11 +550,11 @@ namespace Colso.DataTransporter
                 //SendMessageToStatusBar(this, new StatusBarMessageEventArgs(string.Empty)); // keep showing transfer results afterwards
                 ManageWorkingState(false);
 
-                var errors = (List<Tuple<string, string>>)e.Result;
+                var errors = (List<Item<string, string>>)e.Result;
 
                 if (errors.Count > 0)
                 {
-                    var errorDialog = new ErrorList((List<Tuple<string, string>>)e.Result);
+                    var errorDialog = new ErrorList((List<Item<string, string>>)e.Result);
                     errorDialog.ShowDialog(ParentForm);
                 }
             };

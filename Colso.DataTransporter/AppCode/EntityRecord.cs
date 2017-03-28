@@ -144,7 +144,8 @@ namespace Colso.DataTransporter.AppCode
                     {
                         // Update existing record
                         SetStatusMessage("{0}/{1}: update record", i + 1, recordCount);
-                        ApplyMappings(record);
+						ApplyEntityCollectionMappings(record);
+						ApplyMappings(record);
                         targetService.Update(record);
                         updateCount++;
                     }
@@ -152,7 +153,8 @@ namespace Colso.DataTransporter.AppCode
                     {
                         // Create missing record
                         SetStatusMessage("{0}/{1}: create record", i + 1, recordCount);
-                        ApplyMappings(record);
+						ApplyEntityCollectionMappings(record);
+						ApplyMappings(record);
                         targetService.Create(record);
                         createCount++;
                     }
@@ -172,7 +174,17 @@ namespace Colso.DataTransporter.AppCode
             SetStatusMessage("{0} created; {1} updated; {2} deleted; {3} skipped; {4} errors", createCount, updateCount, deleteCount, skipCount, errorCount);
         }
 
-        private void ApplyMappings(Entity e)
+		private void ApplyEntityCollectionMappings(Entity e)
+		{
+			var references = e.Attributes.Select(a => a.Value).OfType<EntityCollection>().ToArray();
+			foreach (var ec in references)
+				foreach (var entity in ec.Entities)
+				{
+					ApplyMappings(entity);
+				}
+		}
+
+		private void ApplyMappings(Entity e)
         {
             //.OfType<A>()
             var references = e.Attributes.Select(a => a.Value).OfType<EntityReference>().ToArray();

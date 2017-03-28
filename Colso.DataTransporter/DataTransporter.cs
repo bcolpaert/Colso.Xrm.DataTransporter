@@ -1,5 +1,6 @@
 ﻿using Colso.DataTransporter.AppCode;
 using Colso.DataTransporter.Forms;
+using Colso.Xrm.DataTransporter.Models;
 using McTools.Xrm.Connection;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
@@ -40,6 +41,9 @@ namespace Colso.DataTransporter
         private bool workingstate = false;
         private Guid organisationid;
         private Settings settings;
+
+        // keep list of listview items 
+        List<ListViewItem> Entities = new List<ListViewItem>();
 
         #endregion Variables
 
@@ -185,6 +189,11 @@ namespace Colso.DataTransporter
             SetListViewSorting(lvAttributes, e.Column);
         }
 
+        private void txtFilter_TextChanged(object sender, EventArgs e)
+        {
+            SetListViewFilter(lvEntities, Entities, txtFilter.Text);
+        }
+
         private void chkAllAttributes_CheckedChanged(object sender, EventArgs e)
         {
             lvAttributes.Items.OfType<ListViewItem>().ToList().ForEach(item => item.Checked = chkAllAttributes.Checked);
@@ -297,7 +306,6 @@ namespace Colso.DataTransporter
             if (!workingstate)
             {
                 // Reinit other controls
-                lvEntities.Items.Clear();
                 lvAttributes.Items.Clear();
                 ManageWorkingState(true);
 
@@ -311,7 +319,7 @@ namespace Colso.DataTransporter
                     List<EntityMetadata> sourceList = MetadataHelper.RetrieveEntities(service);
 
                     // Prepare list of items
-                    var sourceEntitiesList = new List<ListViewItem>();
+                    Entities.Clear();
 
                     foreach (EntityMetadata entity in sourceList)
                     {
@@ -323,13 +331,13 @@ namespace Colso.DataTransporter
                         if (!entity.IsCustomizable.Value)
                         {
                             item.ForeColor = Color.Gray;
-                            item.ToolTipText = "This entity has not been defined as customizable";
+                            item.SubItems.Add("This entity has not been defined as customizable");
                         }
 
-                        sourceEntitiesList.Add(item);
+                        Entities.Add(item);
                     }
 
-                    e.Result = sourceEntitiesList;
+                    e.Result = Entities;
                 };
                 bwFill.RunWorkerCompleted += (sender, e) =>
                 {
@@ -344,14 +352,10 @@ namespace Colso.DataTransporter
                     {
                         var items = (List<ListViewItem>)e.Result;
                         if (items.Count == 0)
-                        {
                             MessageBox.Show(this, "The system does not contain any entities", "Warning", MessageBoxButtons.OK,
                                             MessageBoxIcon.Warning);
-                        }
                         else
-                        {
-                            lvEntities.Items.AddRange(items.ToArray());
-                        }
+                            SetListViewFilter(lvEntities, items, txtFilter.Text);
                     }
 
                     ManageWorkingState(false);
@@ -594,6 +598,38 @@ namespace Colso.DataTransporter
             }
 
             listview.ListViewItemSorter = new ListViewItemComparer(column, listview.Sorting);
+        }
+
+        private void SetListViewFilter(ListView listview, List<ListViewItem> items, string filter)
+        {
+            workingstate = true;
+
+            listview.Items.Clear(); // clear list items before adding 
+            // filter the items match with search key and add result to list view 
+            listview.Items.AddRange(items.Where(i => string.IsNullOrEmpty(filter) || ContainsText(i, filter)).ToArray());
+
+            workingstate = false;
+        }
+
+        private bool ContainsText(ListViewItem item, string text)
+        {
+            if (string.IsNullOrEmpty(text))
+                return true;
+
+            // Check everything lowercase
+            text = text.ToLower();
+
+            // Check item text
+            if (item.Text.ToLower().Contains(text))
+                return true;
+
+            // Check subitems text
+            foreach (ListViewItem.ListViewSubItem sitem in item.SubItems)
+                if (sitem.Text.ToLower().Contains(text))
+                    return true;
+
+            // No matches found
+            return false;
         }
 
         private void SaveUnmarkedAttributes()

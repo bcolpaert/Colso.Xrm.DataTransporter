@@ -1,4 +1,5 @@
-﻿using Microsoft.Xrm.Sdk;
+﻿using Colso.Xrm.DataTransporter.Models;
+using Microsoft.Xrm.Sdk;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -37,21 +38,6 @@ namespace Colso.DataTransporter.AppCode
                 return false;
             }
         }
-    }
-
-    public class Item<K, V>
-    {
-        public Item() { }
-
-        public Item(K key, V value)
-        {
-            this.Key = key;
-            this.Value = value;
-        }
-
-        public K Key;
-
-        public V Value;
     }
 
     public class Settings

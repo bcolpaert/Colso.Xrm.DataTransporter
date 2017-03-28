@@ -61,6 +61,9 @@
             this.clAttLogicalName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clAttType = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clAttComment = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.lblFilter = new System.Windows.Forms.Label();
+            this.txtFilter = new System.Windows.Forms.TextBox();
+            this.clComment = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.gbEntities.SuspendLayout();
             this.pnlHeader.SuspendLayout();
             this.gbSettings.SuspendLayout();
@@ -75,6 +78,8 @@
             this.gbEntities.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbEntities.Controls.Add(this.txtFilter);
+            this.gbEntities.Controls.Add(this.lblFilter);
             this.gbEntities.Controls.Add(this.lvEntities);
             this.gbEntities.Enabled = false;
             this.gbEntities.Font = new System.Drawing.Font("Segoe UI", 8.25F);
@@ -92,13 +97,14 @@
             | System.Windows.Forms.AnchorStyles.Right)));
             this.lvEntities.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.clEntDisplayName,
-            this.clEntLogicalName});
+            this.clEntLogicalName,
+            this.clComment});
             this.lvEntities.FullRowSelect = true;
             this.lvEntities.HideSelection = false;
-            this.lvEntities.Location = new System.Drawing.Point(6, 21);
+            this.lvEntities.Location = new System.Drawing.Point(6, 44);
             this.lvEntities.MultiSelect = false;
             this.lvEntities.Name = "lvEntities";
-            this.lvEntities.Size = new System.Drawing.Size(309, 442);
+            this.lvEntities.Size = new System.Drawing.Size(309, 419);
             this.lvEntities.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvEntities.TabIndex = 64;
             this.lvEntities.UseCompatibleStateImageBehavior = false;
@@ -404,6 +410,30 @@
             this.clAttComment.Text = "Comment";
             this.clAttComment.Width = 200;
             // 
+            // lblFilter
+            // 
+            this.lblFilter.AutoSize = true;
+            this.lblFilter.Location = new System.Drawing.Point(9, 21);
+            this.lblFilter.Name = "lblFilter";
+            this.lblFilter.Size = new System.Drawing.Size(36, 13);
+            this.lblFilter.TabIndex = 65;
+            this.lblFilter.Text = "Filter:";
+            // 
+            // txtFilter
+            // 
+            this.txtFilter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtFilter.Location = new System.Drawing.Point(51, 16);
+            this.txtFilter.Name = "txtFilter";
+            this.txtFilter.Size = new System.Drawing.Size(264, 22);
+            this.txtFilter.TabIndex = 66;
+            this.txtFilter.TextChanged += new System.EventHandler(this.txtFilter_TextChanged);
+            // 
+            // clComment
+            // 
+            this.clComment.Text = "Comment";
+            this.clComment.Width = 120;
+            // 
             // DataTransporter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -414,6 +444,7 @@
             this.Name = "DataTransporter";
             this.Size = new System.Drawing.Size(800, 600);
             this.gbEntities.ResumeLayout(false);
+            this.gbEntities.PerformLayout();
             this.pnlHeader.ResumeLayout(false);
             this.gbSettings.ResumeLayout(false);
             this.gbSettings.PerformLayout();
@@ -460,5 +491,8 @@
         private System.Windows.Forms.Button btnMappings;
         private System.Windows.Forms.Button btnFilter;
         private System.Windows.Forms.ColumnHeader clAttComment;
+        private System.Windows.Forms.TextBox txtFilter;
+        private System.Windows.Forms.Label lblFilter;
+        private System.Windows.Forms.ColumnHeader clComment;
     }
 }

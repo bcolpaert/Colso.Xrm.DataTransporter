@@ -1,4 +1,4 @@
-﻿using Colso.DataTransporter.AppCode;
+﻿using Colso.Xrm.DataTransporter.Models;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;

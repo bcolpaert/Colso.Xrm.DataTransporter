@@ -1,4 +1,5 @@
 ﻿using Colso.DataTransporter.AppCode;
+using Colso.Xrm.DataTransporter.Models;
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;

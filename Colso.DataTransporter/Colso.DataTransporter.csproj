@@ -135,7 +135,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppCode\EntityRecord.cs" />
+    <Compile Include="Models\Item.cs" />
     <Compile Include="AppCode\ListViewItemComparer.cs" />
+    <Compile Include="Models\Mapping.cs" />
     <Compile Include="AppCode\RecordHelper.cs" />
     <Compile Include="AppCode\MetadataHelper.cs" />
     <Compile Include="AppCode\CrmExceptionHelper.cs" />
@@ -209,7 +211,7 @@
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_ConfigurationName="Release" BuildVersion_BuildVersioningStyle="None.YearStamp.MonthStamp.DayStamp" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" />
+      <UserProperties BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.YearStamp.MonthStamp.DayStamp" BuildVersion_ConfigurationName="Release" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

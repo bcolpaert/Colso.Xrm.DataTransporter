@@ -95,7 +95,7 @@
             // 
             this.txtEntityFilter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtEntityFilter.Location = new System.Drawing.Point(48, 12);
+            this.txtEntityFilter.Location = new System.Drawing.Point(48, 17);
             this.txtEntityFilter.Name = "txtEntityFilter";
             this.txtEntityFilter.Size = new System.Drawing.Size(261, 20);
             this.txtEntityFilter.TabIndex = 66;
@@ -104,7 +104,7 @@
             // lblEntityFilter
             // 
             this.lblEntityFilter.AutoSize = true;
-            this.lblEntityFilter.Location = new System.Drawing.Point(6, 17);
+            this.lblEntityFilter.Location = new System.Drawing.Point(6, 22);
             this.lblEntityFilter.Name = "lblEntityFilter";
             this.lblEntityFilter.Size = new System.Drawing.Size(32, 13);
             this.lblEntityFilter.TabIndex = 65;
@@ -121,10 +121,10 @@
             this.clComment});
             this.lvEntities.FullRowSelect = true;
             this.lvEntities.HideSelection = false;
-            this.lvEntities.Location = new System.Drawing.Point(7, 40);
+            this.lvEntities.Location = new System.Drawing.Point(7, 44);
             this.lvEntities.MultiSelect = false;
             this.lvEntities.Name = "lvEntities";
-            this.lvEntities.Size = new System.Drawing.Size(302, 391);
+            this.lvEntities.Size = new System.Drawing.Size(302, 387);
             this.lvEntities.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvEntities.TabIndex = 64;
             this.lvEntities.UseCompatibleStateImageBehavior = false;
@@ -313,7 +313,7 @@
             // 
             // tsbRefreshAssociations
             // 
-            this.tsbRefreshAssociations.Image = ((System.Drawing.Image)(resources.GetObject("tsbRefreshAssociations.Image")));
+            this.tsbRefreshAssociations.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.relation;
             this.tsbRefreshAssociations.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.tsbRefreshAssociations.Name = "tsbRefreshAssociations";
             this.tsbRefreshAssociations.Size = new System.Drawing.Size(135, 22);

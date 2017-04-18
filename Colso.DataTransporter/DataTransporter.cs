@@ -44,6 +44,7 @@ namespace Colso.DataTransporter
 
         // keep list of listview items 
         List<ListViewItem> Entities = new List<ListViewItem>();
+        List<ListViewItem> Associations = new List<ListViewItem>();
 
         #endregion Variables
 
@@ -169,14 +170,33 @@ namespace Colso.DataTransporter
             PopulateEntities();
         }
 
+        private void tsbRefreshAssociations_Click(object sender, EventArgs e)
+        {
+            PopulateAssociations();
+        }
+
         private void tsbTransferData_Click(object sender, EventArgs e)
         {
             Transfer();
         }
 
+        private void tabSourceObjects_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (Associations.Count == 0)
+            {
+                // Initial load
+                PopulateAssociations();
+            }
+        }
+
         private void lvEntities_SelectedIndexChanged(object sender, EventArgs e)
         {
             PopulateAttributes();
+        }
+
+        private void lvAssociations_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
 
         private void lvEntities_ColumnClick(object sender, ColumnClickEventArgs e)
@@ -189,9 +209,19 @@ namespace Colso.DataTransporter
             SetListViewSorting(lvAttributes, e.Column);
         }
 
-        private void txtFilter_TextChanged(object sender, EventArgs e)
+        private void lvAssociations_ColumnClick(object sender, ColumnClickEventArgs e)
         {
-            SetListViewFilter(lvEntities, Entities, txtFilter.Text);
+            SetListViewSorting(lvAssociations, e.Column);
+        }
+
+        private void txtEntityFilter_TextChanged(object sender, EventArgs e)
+        {
+            SetListViewFilter(lvEntities, Entities, txtEntityFilter.Text);
+        }
+
+        private void txtAssFilter_TextChanged(object sender, EventArgs e)
+        {
+            SetListViewFilter(lvAssociations, Associations, txtAssFilter.Text);
         }
 
         private void chkAllAttributes_CheckedChanged(object sender, EventArgs e)
@@ -232,7 +262,8 @@ namespace Colso.DataTransporter
 
         private void InitMappings()
         {
-            btnMappings.ForeColor = settings[organisationid].Mappings.Count == 0 ? Color.Black : Color.Blue;
+            btnEntityMappings.ForeColor = settings[organisationid].Mappings.Count == 0 ? Color.Black : Color.Blue;
+            btnAssMappings.ForeColor = settings[organisationid].Mappings.Count == 0 ? Color.Black : Color.Blue;
         }
 
         private void InitFilter()
@@ -272,8 +303,7 @@ namespace Colso.DataTransporter
         private void ManageWorkingState(bool working)
         {
             workingstate = working;
-            gbEntities.Enabled = !working;
-            gbAttributes.Enabled = !working;
+            tabSourceObjects.Enabled = !working;
             Cursor = working ? Cursors.WaitCursor : Cursors.Default;
         }
 
@@ -355,7 +385,7 @@ namespace Colso.DataTransporter
                             MessageBox.Show(this, "The system does not contain any entities", "Warning", MessageBoxButtons.OK,
                                             MessageBoxIcon.Warning);
                         else
-                            SetListViewFilter(lvEntities, items, txtFilter.Text);
+                            SetListViewFilter(lvEntities, items, txtEntityFilter.Text);
                     }
 
                     ManageWorkingState(false);
@@ -464,20 +494,80 @@ namespace Colso.DataTransporter
             }
         }
 
+        private void PopulateAssociations()
+        {
+            if (!CheckConnection())
+                return;
+
+            if (!workingstate)
+            {
+                // Reinit other controls
+                ManageWorkingState(true);
+
+                informationPanel = InformationPanel.GetInformationPanel(this, "Loading associations...", 340, 150);
+
+                // Launch treatment
+                var bwFill = new BackgroundWorker();
+                bwFill.DoWork += (sender, e) =>
+                {
+                    // Retrieve 
+                    List<ManyToManyRelationshipMetadata> sourceList = MetadataHelper.RetrieveAssociations(service);
+
+                    // Prepare list of items
+                    Associations.Clear();
+
+                    foreach (ManyToManyRelationshipMetadata ass in sourceList)
+                    {
+                        var name = ass.SchemaName;
+                        var item = new ListViewItem(name);
+                        item.Tag = ass;
+                        item.SubItems.Add(ass.IntersectEntityName);
+                        item.SubItems.Add(ass.Entity1LogicalName);
+                        item.SubItems.Add(ass.Entity1IntersectAttribute);
+                        item.SubItems.Add(ass.Entity2LogicalName);
+                        item.SubItems.Add(ass.Entity2IntersectAttribute);
+
+                        if (!ass.IsCustomizable.Value)
+                        {
+                            item.ForeColor = Color.Gray;
+                            item.SubItems.Add("This relation has not been defined as customizable");
+                        }
+
+                        Associations.Add(item);
+                    }
+
+                    e.Result = Associations;
+                };
+                bwFill.RunWorkerCompleted += (sender, e) =>
+                {
+                    informationPanel.Dispose();
+
+                    if (e.Error != null)
+                    {
+                        MessageBox.Show(this, "An error occured: " + e.Error.Message, "Error", MessageBoxButtons.OK,
+                                        MessageBoxIcon.Error);
+                    }
+                    else
+                    {
+                        var items = (List<ListViewItem>)e.Result;
+                        if (items.Count == 0)
+                            MessageBox.Show(this, "The system does not contain any N:N relationships", "Warning", MessageBoxButtons.OK,
+                                            MessageBoxIcon.Warning);
+                        else
+                            SetListViewFilter(lvAssociations, items, txtAssFilter.Text);
+                    }
+
+                    ManageWorkingState(false);
+                };
+                bwFill.RunWorkerAsync();
+            }
+        }
+
         private void Transfer()
         {
-            // Good time to save the attributes
-            SaveUnmarkedAttributes();
-
             if (service == null || targetService == null)
             {
                 MessageBox.Show("You must select both a source and a target organization", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            if (lvEntities.SelectedItems.Count == 0)
-            {
-                MessageBox.Show("You must select at least one entity to be transfered", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -486,6 +576,30 @@ namespace Colso.DataTransporter
                 MessageBox.Show("You must select at least one setting for transporting the data", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
+
+            // Check what transfer we should execute
+            if (tabEntities.Equals(tabSourceObjects.SelectedTab))
+            {
+                TransferEntities();
+            } else if (tabAssociations.Equals(tabSourceObjects.SelectedTab))
+            {
+                TransferAssociations();
+            } else
+            {
+                MessageBox.Show("Unexpected error: no object type selected (Entity/Relationship)", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void TransferEntities()
+        {
+            if (lvEntities.SelectedItems.Count == 0)
+            {
+                MessageBox.Show("You must select at least one entity to be transfered", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Good time to save the attributes
+            SaveUnmarkedAttributes();
 
             if (cbDelete.Checked)
             {
@@ -535,7 +649,7 @@ namespace Colso.DataTransporter
                     {
                         entity.Filter = settings[organisationid][entitymeta.LogicalName].Filter;
                         entity.Mappings = settings[organisationid].Mappings;
-                        entity.OnStatusMessage += Entity_OnStatusMessage;
+                        entity.OnStatusMessage += Transfer_OnStatusMessage;
                         entity.Transfer();
                         errors.AddRange(entity.Messages.Select(m => new Item<string, string>(entity.Name, m)));
                     }
@@ -570,7 +684,76 @@ namespace Colso.DataTransporter
             bwTransferData.RunWorkerAsync(lvEntities.SelectedItems.Cast<ListViewItem>().Select(v => (EntityMetadata)v.Tag).ToList());
         }
 
-        private void Entity_OnStatusMessage(object sender, EventArgs e)
+        private void TransferAssociations()
+        {
+            if (lvAssociations.SelectedItems.Count == 0)
+            {
+                MessageBox.Show("You must select at least one relationship to be transfered", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            ManageWorkingState(true);
+
+            informationPanel = InformationPanel.GetInformationPanel(this, "Transfering records...", 340, 150);
+            SendMessageToStatusBar(this, new StatusBarMessageEventArgs("Start transfering records..."));
+
+            var transfermode = RelationRecord.TransferMode.None;
+            if (cbCreate.Checked) transfermode |= RelationRecord.TransferMode.Create;
+            if (cbDelete.Checked) transfermode |= RelationRecord.TransferMode.Delete;
+
+            var bwTransferData = new BackgroundWorker { WorkerReportsProgress = true };
+            bwTransferData.DoWork += (sender, e) =>
+            {
+                var worker = (BackgroundWorker)sender;
+                var associations = (List<ManyToManyRelationshipMetadata>)e.Argument;
+                var errors = new List<Item<string, string>>();
+
+                for (int i = 0; i < associations.Count; i++)
+                {
+                    var entitymeta = associations[i];
+                    var ass = new AppCode.RelationRecord(entitymeta, transfermode, service, targetService);
+
+                    worker.ReportProgress((i / associations.Count), string.Format("Transfering relation '{0}'...", ass.Name));
+
+                    try
+                    {
+                        ass.Mappings = settings[organisationid].Mappings;
+                        ass.OnStatusMessage += Transfer_OnStatusMessage;
+                        ass.Transfer();
+                        errors.AddRange(ass.Messages.Select(m => new Item<string, string>(ass.Name, m)));
+                    }
+                    catch (FaultException<OrganizationServiceFault> error)
+                    {
+                        errors.Add(new Item<string, string>(ass.Name, error.Message));
+                    }
+                }
+
+                e.Result = errors;
+            };
+            bwTransferData.RunWorkerCompleted += (sender, e) =>
+            {
+                Controls.Remove(informationPanel);
+                informationPanel.Dispose();
+                //SendMessageToStatusBar(this, new StatusBarMessageEventArgs(string.Empty)); // keep showing transfer results afterwards
+                ManageWorkingState(false);
+
+                var errors = (List<Item<string, string>>)e.Result;
+
+                if (errors.Count > 0)
+                {
+                    var errorDialog = new ErrorList((List<Item<string, string>>)e.Result);
+                    errorDialog.ShowDialog(ParentForm);
+                }
+            };
+            bwTransferData.ProgressChanged += (sender, e) =>
+            {
+                InformationPanel.ChangeInformationPanelMessage(informationPanel, e.UserState.ToString());
+                SendMessageToStatusBar(this, new StatusBarMessageEventArgs(e.UserState.ToString()));
+            };
+            bwTransferData.RunWorkerAsync(lvAssociations.SelectedItems.Cast<ListViewItem>().Select(v => (ManyToManyRelationshipMetadata)v.Tag).ToList());
+        }
+
+        private void Transfer_OnStatusMessage(object sender, EventArgs e)
         {
             SendMessageToStatusBar(this, new StatusBarMessageEventArgs(((StatusMessageEventArgs)e).Message));
         }

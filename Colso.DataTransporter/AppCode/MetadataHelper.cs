@@ -86,15 +86,15 @@ namespace Colso.DataTransporter.AppCode
         /// <returns></returns>
         public static List<EntityMetadata> RetrieveEntities(IOrganizationService oService)
         {
-            List<EntityMetadata> entities = new List<EntityMetadata>();
+            var entities = new List<EntityMetadata>();
 
-            RetrieveAllEntitiesRequest request = new RetrieveAllEntitiesRequest
+            var request = new RetrieveAllEntitiesRequest
             {
                 RetrieveAsIfPublished = true,
                 EntityFilters = EntityFilters.Entity
             };
 
-            RetrieveAllEntitiesResponse response = (RetrieveAllEntitiesResponse)oService.Execute(request);
+            var response = (RetrieveAllEntitiesResponse)oService.Execute(request);
 
             foreach (EntityMetadata emd in response.EntityMetadata)
             {
@@ -107,6 +107,45 @@ namespace Colso.DataTransporter.AppCode
             }
 
             return entities;
+        }
+
+        /// <summary>
+        /// Retrieve list of entities
+        /// </summary>
+        /// <returns></returns>
+        public static List<ManyToManyRelationshipMetadata> RetrieveAssociations(IOrganizationService oService)
+        {
+            var associations = new List<ManyToManyRelationshipMetadata>();
+            var processedAssociations = new HashSet<string>();
+
+            var request = new RetrieveAllEntitiesRequest
+            {
+                RetrieveAsIfPublished = true,
+                EntityFilters = EntityFilters.Relationships
+            };
+
+            var response = (RetrieveAllEntitiesResponse)oService.Execute(request);
+
+            foreach (EntityMetadata emd in response.EntityMetadata)
+            {
+                // Get all n:n relations
+                foreach (ManyToManyRelationshipMetadata relationship in emd.ManyToManyRelationships)
+                {
+                    if (!relationship.IsValidForAdvancedFind.Value)
+                        continue;
+
+                    if (relationship.IntersectEntityName == "subscriptionmanuallytrackedobject")
+                        continue;
+
+                    if (processedAssociations.Contains(relationship.SchemaName))
+                        continue;
+
+                    processedAssociations.Add(relationship.SchemaName);
+                    associations.Add(relationship);
+                }
+            }
+
+            return associations;
         }
 
         public static EntityMetadata RetrieveEntity(string logicalName, IOrganizationService oService)

@@ -15,26 +15,24 @@ using System.Xml.Linq;
 
 namespace Colso.DataTransporter.AppCode
 {
-    public class EntityRecord
+    public class RelationRecord
     {
         public enum TransferMode
         {
             None = 0,
             Create = 1,
-            Update = 2,
             Delete = 4
         }
 
         private EntityCollection sourceRecords;
         private EntityCollection targetRecords;
 
-        private static List<EntityMetadata> sourceEntitiesMetadata;
-        private static List<EntityMetadata> targetEntitiesMetadata;
+        private static List<ManyToManyRelationshipMetadata> sourceEntitiesMetadata;
+        private static List<ManyToManyRelationshipMetadata> targetEntitiesMetadata;
         private static Guid targetCurrentUserId;
         private readonly IOrganizationService sourceService;
         private readonly IOrganizationService targetService;
-        private readonly EntityMetadata entity;
-        private readonly List<AttributeMetadata> attributes;
+        private readonly ManyToManyRelationshipMetadata relation;
         private readonly TransferMode transfermode;
 
         public event EventHandler OnStatusMessage;
@@ -46,16 +44,16 @@ namespace Colso.DataTransporter.AppCode
         public string Name { get; }
         public List<string> Messages { get; }
 
-        public EntityRecord(EntityMetadata entity, List<AttributeMetadata> attributes, TransferMode mode, IOrganizationService sourceService, IOrganizationService targetService)
+        public RelationRecord(ManyToManyRelationshipMetadata relation, TransferMode mode, IOrganizationService sourceService, IOrganizationService targetService)
         {
             if (sourceEntitiesMetadata == null)
             {
-                sourceEntitiesMetadata = new List<EntityMetadata>();
+                sourceEntitiesMetadata = new List<ManyToManyRelationshipMetadata>();
             }
 
             if (targetEntitiesMetadata == null)
             {
-                targetEntitiesMetadata = new List<EntityMetadata>();
+                targetEntitiesMetadata = new List<ManyToManyRelationshipMetadata>();
             }
 
             if (targetCurrentUserId == Guid.Empty)
@@ -63,12 +61,11 @@ namespace Colso.DataTransporter.AppCode
                 targetCurrentUserId = ((WhoAmIResponse)targetService.Execute(new WhoAmIRequest())).UserId;
             }
 
-            this.entity = entity;
-            this.attributes = attributes;
+            this.relation = relation;
             this.transfermode = mode;
             this.sourceService = sourceService;
             this.targetService = targetService;
-            this.Name = entity.DisplayName.UserLocalizedLabel == null ? string.Empty : entity.DisplayName.UserLocalizedLabel.Label;
+            this.Name = relation.SchemaName;
             this.Messages = new List<string>();
         }
 
@@ -80,13 +77,9 @@ namespace Colso.DataTransporter.AppCode
 
         private void RetrieveData()
         {
-            var columns = this.attributes.Select(a => a.LogicalName).ToArray();
-
             // Check if the record already exists on target organization
-            //var sourceqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(columns) };
-            var sourceqry = BuildFetchXml(entity.LogicalName, columns, Filter);
-            var targetqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(false) };
-
+            var sourceqry = new QueryExpression(relation.IntersectEntityName) { ColumnSet = new ColumnSet(true) };
+            var targetqry = new QueryExpression(relation.IntersectEntityName) { ColumnSet = new ColumnSet(true) };
 
             SetProgress(0, "Retrieving records...");
             var sourceRetrieveTask = Task.Factory.StartNew<EntityCollection>(() => { return RetrieveAll(sourceService, sourceqry); });
@@ -114,15 +107,21 @@ namespace Colso.DataTransporter.AppCode
             // Delete the missing source records in the target environment
             if ((transfermode & TransferMode.Delete) == TransferMode.Delete)
             {
-                var missing = targetRecords.Entities.Select(e => e.Id).Except(sourceRecords.Entities.Select(e => e.Id)).ToArray();
+                //var missing = targetRecords.Entities.Select(e => e.Id).Except(sourceRecords.Entities.Select(e => e.Id)).ToArray();
+                var missing = targetRecords.Entities
+                    .Where(te => !sourceRecords.Entities.Any(se => te.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute).Equals(se.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute)) && te.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute).Equals(se.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute))))
+                    .ToArray();
+
                 missingCount = missing.Length;
                 totalTaskCount += missingCount;
                 for (int i = 0; i < missingCount; i++)
                 {
                     var record = missing[i];
+                    var entity1id = record.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute);
+                    var entity2id = record.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute);
                     SetProgress(i / totalTaskCount, "");
                     SetStatusMessage("{0}/{1}: delete record", i + 1, missingCount);
-                    targetService.Delete(entity.LogicalName, record);
+                    Disassociate(relation.SchemaName, relation.Entity1LogicalName, entity1id, relation.Entity2LogicalName, entity2id);
                     deleteCount++;
                 }
             }
@@ -133,29 +132,19 @@ namespace Colso.DataTransporter.AppCode
                 try
                 {
                     var record = sourceRecords.Entities[i];
-                    var recordexist = targetRecords.Entities.Any(e => e.Id.Equals(record.Id));
-                    var name = entity.DisplayName.UserLocalizedLabel == null ? string.Empty : entity.DisplayName.UserLocalizedLabel.Label;
-                    SetProgress((i + missingCount) / totalTaskCount, "Transfering entity '{0}'...", name);
+                    var entity1id = record.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute);
+                    var entity2id = record.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute);
+                    var recordexist = targetRecords.Entities.Any(e => e.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute).Equals(entity1id) && e.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute).Equals(entity2id));
 
-                    // BC 22/11/2016: some attributes are auto added in the result query
-                    RemoveUnwantedAttributes(record);
+                    var name = relation.SchemaName;
+                    SetProgress((i + missingCount) / totalTaskCount, "Transfering relation '{0}'...", name);
 
-                    if (recordexist && ((transfermode & TransferMode.Update) == TransferMode.Update))
-                    {
-                        // Update existing record
-                        SetStatusMessage("{0}/{1}: update record", i + 1, recordCount);
-                        ApplyEntityCollectionMappings(record);
-                        ApplyMappings(record);
-                        targetService.Update(record);
-                        updateCount++;
-                    }
-                    else if (!recordexist && ((transfermode & TransferMode.Create) == TransferMode.Create))
+                    if (!recordexist && ((transfermode & TransferMode.Create) == TransferMode.Create))
                     {
                         // Create missing record
                         SetStatusMessage("{0}/{1}: create record", i + 1, recordCount);
-                        ApplyEntityCollectionMappings(record);
                         ApplyMappings(record);
-                        targetService.Create(record);
+                        Associate(relation.SchemaName, relation.Entity1LogicalName, entity1id, relation.Entity2LogicalName, entity2id);
                         createCount++;
                     }
                     else
@@ -174,27 +163,33 @@ namespace Colso.DataTransporter.AppCode
             SetStatusMessage("{0} created; {1} updated; {2} deleted; {3} skipped; {4} errors", createCount, updateCount, deleteCount, skipCount, errorCount);
         }
 
-        private void ApplyEntityCollectionMappings(Entity e)
+        private void Associate(string relationshipName, string entity1LogicalName, Guid entity1Id, string entity2LogicalName, Guid entity2Id)
         {
-            var references = e.Attributes.Select(a => a.Value).OfType<EntityCollection>().ToArray();
-            foreach (var ec in references)
-                foreach (var entity in ec.Entities)
-                {
-                    ApplyMappings(entity);
-                }
+            var request = new AssociateEntitiesRequest();
+            request.Moniker1 = new EntityReference { Id = entity1Id, LogicalName = entity1LogicalName };
+            request.Moniker2 = new EntityReference { Id = entity2Id, LogicalName = entity2LogicalName };
+            request.RelationshipName = relationshipName;
+
+            targetService.Execute(request);
+        }
+        private void Disassociate(string relationshipName, string entity1LogicalName, Guid entity1Id, string entity2LogicalName, Guid entity2Id)
+        {
+            var request = new DisassociateEntitiesRequest();
+            request.Moniker1 = new EntityReference { Id = entity1Id, LogicalName = entity1LogicalName };
+            request.Moniker2 = new EntityReference { Id = entity2Id, LogicalName = entity2LogicalName };
+            request.RelationshipName = relationshipName;
+
+            targetService.Execute(request);
         }
 
         private void ApplyMappings(Entity e)
         {
-            //.OfType<A>()
-            var references = e.Attributes.Select(a => a.Value).OfType<EntityReference>().ToArray();
-
             foreach (var map in Mappings)
             {
-                var matches = references.Where(r => r.LogicalName == map.Key.LogicalName && r.Id.Equals(map.Key.Id)).ToArray();
-
-                foreach (var match in matches)
-                    match.Id = map.Value.Id;
+                if (relation.Entity1LogicalName == map.Key.LogicalName && map.Key.Id.Equals(e.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute)))
+                    e.Attributes[relation.Entity1IntersectAttribute] = map.Value.Id;
+                else if (relation.Entity2LogicalName == map.Key.LogicalName && map.Key.Id.Equals(e.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute)))
+                    e.Attributes[relation.Entity2IntersectAttribute] = map.Value.Id;
             }
         }
 
@@ -345,16 +340,6 @@ namespace Colso.DataTransporter.AppCode
             if (OnProgress == null) return;
 
             OnProgress(this, new ProgressEventArgs(progress, string.Format(format, args)));
-        }
-
-        private void RemoveUnwantedAttributes(Entity entity)
-        {
-            // Make sure only selected attributes are send
-            var unwantedattributes = entity.Attributes.Where(ae => !this.attributes.Any(a => a.LogicalName.Equals(ae.Key))).Select(ae => ae.Key).ToArray();
-
-            // Remove unwanted attributes
-            foreach (var att in unwantedattributes)
-                entity.Attributes.Remove(att);
         }
     }
 }

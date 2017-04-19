@@ -42,12 +42,12 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="McTools.Xrm.Connection, Version=1.2016.9.1, Culture=neutral, PublicKeyToken=96037217801d9658, processorArchitecture=MSIL">
-      <HintPath>..\packages\MscrmTools.Xrm.Connection.1.2016.9.1\lib\net452\McTools.Xrm.Connection.dll</HintPath>
+    <Reference Include="McTools.Xrm.Connection, Version=1.2017.2.12, Culture=neutral, PublicKeyToken=96037217801d9658, processorArchitecture=MSIL">
+      <HintPath>..\packages\MscrmTools.Xrm.Connection.1.2017.2.12\lib\net452\McTools.Xrm.Connection.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="McTools.Xrm.Connection.WinForms, Version=1.2016.9.1, Culture=neutral, PublicKeyToken=f1559f79cf894e27, processorArchitecture=MSIL">
-      <HintPath>..\packages\MscrmTools.Xrm.Connection.1.2016.9.1\lib\net452\McTools.Xrm.Connection.WinForms.dll</HintPath>
+    <Reference Include="McTools.Xrm.Connection.WinForms, Version=1.2017.2.12, Culture=neutral, PublicKeyToken=f1559f79cf894e27, processorArchitecture=MSIL">
+      <HintPath>..\packages\MscrmTools.Xrm.Connection.1.2017.2.12\lib\net452\McTools.Xrm.Connection.WinForms.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Microsoft.Crm.Sdk.Proxy, Version=8.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -120,16 +120,16 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Serialization" />
-    <Reference Include="XrmToolBox, Version=1.2016.11.3, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\XrmToolBoxPackage.1.2016.11.3\lib\net452\XrmToolBox.exe</HintPath>
+    <Reference Include="XrmToolBox, Version=1.2017.3.14, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\XrmToolBoxPackage.1.2017.3.14\lib\net452\XrmToolBox.exe</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="XrmToolBox.Extensibility, Version=1.2016.11.3, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\XrmToolBoxPackage.1.2016.11.3\lib\net452\XrmToolBox.Extensibility.dll</HintPath>
+    <Reference Include="XrmToolBox.Extensibility, Version=1.2017.2.7, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\XrmToolBoxPackage.1.2017.3.14\lib\net452\XrmToolBox.Extensibility.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="XrmToolBox.PluginsStore, Version=1.2016.11.1, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\XrmToolBoxPackage.1.2016.11.3\lib\net452\XrmToolBox.PluginsStore.dll</HintPath>
+    <Reference Include="XrmToolBox.PluginsStore, Version=1.2017.1.4, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\XrmToolBoxPackage.1.2017.3.14\lib\net452\XrmToolBox.PluginsStore.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -213,7 +213,7 @@
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.YearStamp.MonthStamp.DayStamp" BuildVersion_ConfigurationName="Release" />
+      <UserProperties BuildVersion_ConfigurationName="Release" BuildVersion_BuildVersioningStyle="None.YearStamp.MonthStamp.DayStamp" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

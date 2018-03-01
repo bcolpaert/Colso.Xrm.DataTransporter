@@ -430,7 +430,12 @@ namespace Colso.DataTransporter
                             var attributes = entitymeta.Attributes
                                 .Where(a => (a.IsValidForCreate != null && a.IsValidForCreate.Value) || (a.IsValidForUpdate != null && a.IsValidForUpdate.Value))
                                 .Where(a => a.IsValidForRead != null && a.IsValidForRead.Value)
-                                .ToArray();
+                                .ToList();
+
+                            if(attributes.FirstOrDefault(x=> x.LogicalName == "statecode") == null)
+                            {
+                                attributes.Add(entitymeta.Attributes.FirstOrDefault(x => x.LogicalName == "statecode"));
+                            }
 
                             foreach (AttributeMetadata attribute in attributes)
                             {

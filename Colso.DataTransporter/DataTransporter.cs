@@ -439,6 +439,9 @@ namespace Colso.DataTransporter
 
                             foreach (AttributeMetadata attribute in attributes)
                             {
+                                if (attribute == null)
+                                    continue;
+
                                 var name = attribute.DisplayName.UserLocalizedLabel == null ? string.Empty : attribute.DisplayName.UserLocalizedLabel.Label;
                                 var typename = attribute.AttributeTypeName == null ? string.Empty : attribute.AttributeTypeName.Value;
                                 var item = new ListViewItem(name);

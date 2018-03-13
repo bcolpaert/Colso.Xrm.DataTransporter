@@ -430,37 +430,41 @@ namespace Colso.DataTransporter
                             var attributes = entitymeta.Attributes
                                 .Where(a => (a.IsValidForCreate != null && a.IsValidForCreate.Value) || (a.IsValidForUpdate != null && a.IsValidForUpdate.Value))
                                 .Where(a => a.IsValidForRead != null && a.IsValidForRead.Value)
-                                .ToArray();
+                                .ToList();
+
+                            if(attributes.FirstOrDefault(x=> x.LogicalName == "statecode") == null)
+                            {
+                                attributes.Add(entitymeta.Attributes.FirstOrDefault(x => x.LogicalName == "statecode"));
+                            }
 
                             foreach (AttributeMetadata attribute in attributes)
                             {
-                                // Skip "statecode", "statuscode" (should be updated via SetStateRequest)
-                                if (!attribute.LogicalName.Equals("statecode")
-                                && !attribute.LogicalName.Equals("statuscode"))
+                                if (attribute == null)
+                                    continue;
+
+                                var name = attribute.DisplayName.UserLocalizedLabel == null ? string.Empty : attribute.DisplayName.UserLocalizedLabel.Label;
+                                var typename = attribute.AttributeTypeName == null ? string.Empty : attribute.AttributeTypeName.Value;
+                                var item = new ListViewItem(name);
+                                item.Tag = attribute;
+                                item.SubItems.Add(attribute.LogicalName);
+                                item.SubItems.Add(typename.EndsWith("Type") ? typename.Substring(0, typename.LastIndexOf("Type")) : typename);
+
+                                if (attribute.IsValidForCreate == null || !attribute.IsValidForCreate.Value)
                                 {
-                                    var name = attribute.DisplayName.UserLocalizedLabel == null ? string.Empty : attribute.DisplayName.UserLocalizedLabel.Label;
-                                    var typename = attribute.AttributeTypeName == null ? string.Empty : attribute.AttributeTypeName.Value;
-                                    var item = new ListViewItem(name);
-                                    item.Tag = attribute;
-                                    item.SubItems.Add(attribute.LogicalName);
-                                    item.SubItems.Add(typename.EndsWith("Type") ? typename.Substring(0, typename.LastIndexOf("Type")) : typename);
-
-                                    if (attribute.IsValidForCreate == null || !attribute.IsValidForCreate.Value)
-                                    {
-                                        item.ForeColor = Color.Gray;
-                                        item.ToolTipText = "This attribute is not valid for create";
-                                        item.SubItems.Add(item.ToolTipText);
-                                    }
-                                    else if (attribute.IsValidForUpdate == null || !attribute.IsValidForUpdate.Value)
-                                    {
-                                        item.ForeColor = Color.Gray;
-                                        item.ToolTipText = "This attribute is not valid for update";
-                                        item.SubItems.Add(item.ToolTipText);
-                                    }
-
-                                    item.Checked = !unmarkedattributes.Contains(attribute.LogicalName);
-                                    sourceAttributesList.Add(item);
+                                    item.ForeColor = Color.Gray;
+                                    item.ToolTipText = "This attribute is not valid for create";
+                                    item.SubItems.Add(item.ToolTipText);
                                 }
+                                else if (attribute.IsValidForUpdate == null || !attribute.IsValidForUpdate.Value)
+                                {
+                                    item.ForeColor = Color.Gray;
+                                    item.ToolTipText = "This attribute is not valid for update";
+                                    item.SubItems.Add(item.ToolTipText);
+                                }
+
+                                item.Checked = !unmarkedattributes.Contains(attribute.LogicalName);
+                                sourceAttributesList.Add(item);
+
                             }
 
                             e.Result = sourceAttributesList;

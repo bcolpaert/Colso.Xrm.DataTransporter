@@ -85,7 +85,8 @@ namespace Colso.DataTransporter.AppCode
             // Check if the record already exists on target organization
             //var sourceqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(columns) };
             var sourceqry = BuildFetchXml(entity.LogicalName, columns, Filter);
-            var targetqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(false) };
+            var targetqry = new QueryExpression(entity.LogicalName);
+            targetqry.ColumnSet.AddColumns("statecode", "statuscode");
 
 
             SetProgress(0, "Retrieving records...");
@@ -133,11 +134,13 @@ namespace Colso.DataTransporter.AppCode
                 try
                 {
                     var record = sourceRecords.Entities[i];
-                    var recordexist = targetRecords.Entities.Any(e => e.Id.Equals(record.Id));
+                    var targetEntity = targetRecords.Entities.FirstOrDefault(e => e.Id.Equals(record.Id));
+                    var recordexist = targetEntity != null;
                     var name = entity.DisplayName.UserLocalizedLabel == null ? string.Empty : entity.DisplayName.UserLocalizedLabel.Label;
                     SetProgress((i + missingCount) / totalTaskCount, "Transfering entity '{0}'...", name);
 
                     // BC 22/11/2016: some attributes are auto added in the result query
+                    var sourceStateAndStatus = RemoveStateAndStatus(record);
                     RemoveUnwantedAttributes(record);
 
                     if (recordexist && ((transfermode & TransferMode.Update) == TransferMode.Update))
@@ -147,6 +150,7 @@ namespace Colso.DataTransporter.AppCode
                         ApplyEntityCollectionMappings(record);
                         ApplyMappings(record);
                         targetService.Update(record);
+                        SetState(record, sourceStateAndStatus, targetEntity);
                         updateCount++;
                     }
                     else if (!recordexist && ((transfermode & TransferMode.Create) == TransferMode.Create))
@@ -156,6 +160,7 @@ namespace Colso.DataTransporter.AppCode
                         ApplyEntityCollectionMappings(record);
                         ApplyMappings(record);
                         targetService.Create(record);
+                        SetState(record, sourceStateAndStatus);
                         createCount++;
                     }
                     else
@@ -172,6 +177,43 @@ namespace Colso.DataTransporter.AppCode
             }
 
             SetStatusMessage("{0} created; {1} updated; {2} deleted; {3} skipped; {4} errors", createCount, updateCount, deleteCount, skipCount, errorCount);
+        }
+
+        private RecordStateAndStatus RemoveStateAndStatus(Entity record)
+        {
+            var recordStateAndStatus = new RecordStateAndStatus
+            {
+                State = (OptionSetValue)record["statecode"],
+                Status = (OptionSetValue)record["statuscode"]
+            };
+
+            record.Attributes.Remove("statecode");
+            record.Attributes.Remove("statuscode");
+
+            return recordStateAndStatus;
+        }
+
+        private void SetState(Entity target, RecordStateAndStatus sourceStateAndStatus, Entity currentStateAndStatusEntity = null)
+        {
+            if (currentStateAndStatusEntity != null)
+            {
+                var currentStateAndStatus = RemoveStateAndStatus(currentStateAndStatusEntity);
+
+                if (sourceStateAndStatus.State.Value == currentStateAndStatus.State.Value
+                    && sourceStateAndStatus.Status.Value == currentStateAndStatus.Status.Value)
+
+                    return;
+            }
+
+
+            SetStateRequest setState = new SetStateRequest()
+            {
+                EntityMoniker = target.ToEntityReference(),
+                State = sourceStateAndStatus.State,
+                Status = sourceStateAndStatus.Status
+            };
+
+            targetService.Execute(setState);
         }
 
         private void ApplyEntityCollectionMappings(Entity e)

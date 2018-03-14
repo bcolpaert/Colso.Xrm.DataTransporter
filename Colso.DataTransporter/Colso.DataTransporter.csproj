@@ -136,10 +136,15 @@
   <ItemGroup>
     <Compile Include="AppCode\RelationRecord.cs" />
     <Compile Include="AppCode\EntityRecord.cs" />
+    <Compile Include="Forms\Preview.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\Preview.Designer.cs">
+      <DependentUpon>Preview.cs</DependentUpon>
+    </Compile>
     <Compile Include="Models\Item.cs" />
     <Compile Include="AppCode\ListViewItemComparer.cs" />
     <Compile Include="Models\Mapping.cs" />
-    <Compile Include="AppCode\RecordHelper.cs" />
     <Compile Include="AppCode\MetadataHelper.cs" />
     <Compile Include="AppCode\CrmExceptionHelper.cs" />
     <Compile Include="AppCode\ProgressEventArgs.cs" />
@@ -181,6 +186,9 @@
     <EmbeddedResource Include="DataTransporter.resx">
       <DependentUpon>DataTransporter.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Forms\Preview.resx">
+      <DependentUpon>Preview.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\MappingList.resx">
       <DependentUpon>MappingList.cs</DependentUpon>
     </EmbeddedResource>
@@ -201,6 +209,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="LICENSE.txt" />
+    <Content Include="Resources\preview.png" />
     <Content Include="Resources\relation.gif" />
     <None Include="Resources\entities.gif" />
     <None Include="Resources\export.png" />
@@ -213,7 +222,7 @@
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_ConfigurationName="Release" BuildVersion_BuildVersioningStyle="None.YearStamp.MonthStamp.DayStamp" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" />
+      <UserProperties BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.YearStamp.MonthStamp.DayStamp" BuildVersion_ConfigurationName="Release" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

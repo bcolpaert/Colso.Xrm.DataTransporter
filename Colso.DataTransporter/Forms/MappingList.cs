@@ -28,10 +28,17 @@ namespace Colso.DataTransporter.Forms
             {
                 if (!m.IsNewRow)
                 {
-                    var entity = (string)m.Cells[0].Value;
-                    var sourceid = Guid.Parse((string)m.Cells[1].Value);
-                    var targetid = Guid.Parse((string)m.Cells[2].Value);
-                    list.Add(new Item<EntityReference, EntityReference>(new EntityReference(entity, sourceid), new EntityReference(entity, targetid)));
+                    try
+                    {
+                        var entity = (string)m.Cells[0].Value;
+                        var sourceid = Guid.Parse((string)m.Cells[1].Value);
+                        var targetid = Guid.Parse((string)m.Cells[2].Value);
+                        list.Add(new Item<EntityReference, EntityReference>(new EntityReference(entity, sourceid), new EntityReference(entity, targetid)));
+                    }
+                    catch (Exception)
+                    {
+                        // Do nothing
+                    }
                 }
             }
 
@@ -68,22 +75,30 @@ namespace Colso.DataTransporter.Forms
 
         private void dgvMappings_CellValidating(object sender, DataGridViewCellValidatingEventArgs e)
         {
-            Guid dummy;
-            string column = dgvMappings.Columns[e.ColumnIndex].Name;
-
-            // Abort validation if cell is not in the CompanyName column.
-            if (column.Equals("clEntity"))
+            try
             {
-                if (e.FormattedValue == null)
+                Guid dummy;
+                string column = dgvMappings.Columns[e.ColumnIndex].Name;
+
+                // Abort validation if cell is not in the CompanyName column.
+                if (column.Equals("clEntity"))
                 {
-                    dgvMappings.Rows[e.RowIndex].ErrorText = "Entity must not be empty";
+                    if (e.FormattedValue == null)
+                    {
+                        dgvMappings.Rows[e.RowIndex].ErrorText = "Entity must not be empty";
+                        e.Cancel = true;
+                    }
+                }
+                else if (!Guid.TryParse(e.FormattedValue.ToString(), out dummy))
+                {
+                    // Check on valid GUID
+                    dgvMappings.Rows[e.RowIndex].ErrorText = string.Format("{0} is not a valid GUID", dgvMappings.Columns[e.ColumnIndex].HeaderText);
                     e.Cancel = true;
                 }
             }
-            else if (!Guid.TryParse(e.FormattedValue.ToString(), out dummy))
+            catch (Exception ex)
             {
-                // Check on valid GUID
-                dgvMappings.Rows[e.RowIndex].ErrorText = string.Format("{0} is not a valid GUID", dgvMappings.Columns[e.ColumnIndex].HeaderText);
+                dgvMappings.Rows[e.RowIndex].ErrorText = ex.Message;
                 e.Cancel = true;
             }
         }

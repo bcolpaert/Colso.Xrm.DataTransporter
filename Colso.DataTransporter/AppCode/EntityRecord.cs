@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Linq;
 
@@ -20,9 +21,10 @@ namespace Colso.DataTransporter.AppCode
         public enum TransferMode
         {
             None = 0,
-            Create = 1,
-            Update = 2,
-            Delete = 4
+            Preview = 1,
+            Create = 2,
+            Update = 4,
+            Delete = 8
         }
 
         private EntityCollection sourceRecords;
@@ -45,6 +47,7 @@ namespace Colso.DataTransporter.AppCode
 
         public string Name { get; }
         public List<string> Messages { get; }
+        public List<ListViewItem> PreviewList { get; }
 
         public EntityRecord(EntityMetadata entity, List<AttributeMetadata> attributes, TransferMode mode, IOrganizationService sourceService, IOrganizationService targetService)
         {
@@ -70,6 +73,7 @@ namespace Colso.DataTransporter.AppCode
             this.targetService = targetService;
             this.Name = entity.DisplayName.UserLocalizedLabel == null ? string.Empty : entity.DisplayName.UserLocalizedLabel.Label;
             this.Messages = new List<string>();
+            this.PreviewList = new List<ListViewItem>();
         }
 
         public void Transfer()
@@ -80,12 +84,13 @@ namespace Colso.DataTransporter.AppCode
 
         private void RetrieveData()
         {
-            var columns = this.attributes.Select(a => a.LogicalName).ToArray();
+            var columns = this.attributes.Select(a => a.LogicalName).ToList();
+            if (!columns.Contains(this.entity.PrimaryNameAttribute)) columns.Add(this.entity.PrimaryNameAttribute);
 
             // Check if the record already exists on target organization
             //var sourceqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(columns) };
-            var sourceqry = BuildFetchXml(entity.LogicalName, columns, Filter);
-            var targetqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(false) };
+            var sourceqry = BuildFetchXml(entity.LogicalName, columns.ToArray(), Filter);
+            var targetqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(this.entity.PrimaryNameAttribute) };
 
 
             SetProgress(0, "Retrieving records...");
@@ -119,10 +124,18 @@ namespace Colso.DataTransporter.AppCode
                 totalTaskCount += missingCount;
                 for (int i = 0; i < missingCount; i++)
                 {
-                    var record = missing[i];
+                    var recordid = missing[i];
                     SetProgress(i / totalTaskCount, "");
                     SetStatusMessage("{0}/{1}: delete record", i + 1, missingCount);
-                    targetService.Delete(entity.LogicalName, record);
+                    if ((transfermode & TransferMode.Preview) != TransferMode.Preview)
+                    {
+                        targetService.Delete(entity.LogicalName, recordid);
+                    }
+                    else {
+                        var record = targetRecords.Entities.Where(e => e.Id.Equals(recordid)).FirstOrDefault();
+                        var lvrecord = ToListViewItem(record, "DELETE");
+                        PreviewList.Add(lvrecord);
+                    }
                     deleteCount++;
                 }
             }
@@ -139,6 +152,8 @@ namespace Colso.DataTransporter.AppCode
 
                     // BC 22/11/2016: some attributes are auto added in the result query
                     RemoveUnwantedAttributes(record);
+                    // BC 19/12/2017: null values are not retrieved
+                    AddMissingAttributes(record);
 
                     if (recordexist && ((transfermode & TransferMode.Update) == TransferMode.Update))
                     {
@@ -146,7 +161,8 @@ namespace Colso.DataTransporter.AppCode
                         SetStatusMessage("{0}/{1}: update record", i + 1, recordCount);
                         ApplyEntityCollectionMappings(record);
                         ApplyMappings(record);
-                        targetService.Update(record);
+                        if ((transfermode & TransferMode.Preview) != TransferMode.Preview) targetService.Update(record);
+                        else PreviewList.Add(ToListViewItem(record, "UPDATE"));
                         updateCount++;
                     }
                     else if (!recordexist && ((transfermode & TransferMode.Create) == TransferMode.Create))
@@ -155,7 +171,8 @@ namespace Colso.DataTransporter.AppCode
                         SetStatusMessage("{0}/{1}: create record", i + 1, recordCount);
                         ApplyEntityCollectionMappings(record);
                         ApplyMappings(record);
-                        targetService.Create(record);
+                        if ((transfermode & TransferMode.Preview) != TransferMode.Preview) targetService.Create(record);
+                        else PreviewList.Add(ToListViewItem(record, "CREATE"));
                         createCount++;
                     }
                     else
@@ -171,7 +188,8 @@ namespace Colso.DataTransporter.AppCode
                 }
             }
 
-            SetStatusMessage("{0} created; {1} updated; {2} deleted; {3} skipped; {4} errors", createCount, updateCount, deleteCount, skipCount, errorCount);
+            if ((transfermode & TransferMode.Preview) != TransferMode.Preview) SetStatusMessage("{0} created; {1} updated; {2} deleted; {3} skipped; {4} errors", createCount, updateCount, deleteCount, skipCount, errorCount);
+            else SetStatusMessage("PREVIEW: {0} created; {1} updated; {2} deleted; {3} skipped; {4} errors", createCount, updateCount, deleteCount, skipCount, errorCount);
         }
 
         private void ApplyEntityCollectionMappings(Entity e)
@@ -355,6 +373,32 @@ namespace Colso.DataTransporter.AppCode
             // Remove unwanted attributes
             foreach (var att in unwantedattributes)
                 entity.Attributes.Remove(att);
+        }
+
+        private void AddMissingAttributes(Entity entity)
+        {
+            // Make sure only selected attributes are send
+            var missingattributes = this.attributes.Where(ae => !entity.Attributes.Any(a => a.Key.Equals(ae.LogicalName))).Select(ae => ae.LogicalName).ToArray();
+
+            // Remove unwanted attributes
+            foreach (var att in missingattributes)
+                entity.Attributes.Add(att, null);
+        }
+
+        private ListViewItem ToListViewItem(Entity entity, string action)
+        {
+            var lv = new ListViewItem(action);
+            lv.SubItems.Add(entity.GetAttributeValue<string>(this.entity.PrimaryNameAttribute));
+            lv.SubItems.Add(entity.Id.ToString());
+
+            // Add all attributes
+            foreach (var item in entity.Attributes)
+            {
+
+                //lv.SubItems.Add(item.Value);
+            }
+
+            return lv;
         }
     }
 }

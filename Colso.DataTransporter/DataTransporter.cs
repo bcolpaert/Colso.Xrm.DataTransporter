@@ -31,7 +31,7 @@ namespace Colso.DataTransporter
         /// <summary>
         /// Dynamics CRM 2011 organization service
         /// </summary>
-        private IOrganizationService service;
+        private IOrganizationService sourceService;
 
         /// <summary>
         /// Dynamics CRM 2011 target organization service
@@ -120,7 +120,7 @@ namespace Colso.DataTransporter
             {
                 organisationid = connectionDetail.ConnectionId.Value;
                 SetConnectionLabel(connectionDetail.ConnectionName, "Source");
-                service = newService;
+                sourceService = newService;
                 // init buttons -> value based on connection
                 InitMappings();
                 InitFilter();
@@ -177,7 +177,12 @@ namespace Colso.DataTransporter
 
         private void tsbTransferData_Click(object sender, EventArgs e)
         {
-            Transfer();
+            ExecuteAction(false);
+        }
+
+        private void btnPreviewTransfer_Click(object sender, EventArgs e)
+        {
+            ExecuteAction(true);
         }
 
         private void tabSourceObjects_SelectedIndexChanged(object sender, EventArgs e)
@@ -309,7 +314,7 @@ namespace Colso.DataTransporter
 
         private bool CheckConnection()
         {
-            if (service == null)
+            if (sourceService == null)
             {
                 if (OnRequestConnection != null)
                 {
@@ -346,7 +351,7 @@ namespace Colso.DataTransporter
                 bwFill.DoWork += (sender, e) =>
                 {
                     // Retrieve 
-                    List<EntityMetadata> sourceList = MetadataHelper.RetrieveEntities(service);
+                    List<EntityMetadata> sourceList = MetadataHelper.RetrieveEntities(sourceService);
 
                     // Prepare list of items
                     Entities.Clear();
@@ -418,7 +423,7 @@ namespace Colso.DataTransporter
                         bwFill.DoWork += (sender, e) =>
                         {
                             // Retrieve 
-                            var entitymeta = MetadataHelper.RetrieveEntity(entity.LogicalName, service);
+                            var entitymeta = MetadataHelper.RetrieveEntity(entity.LogicalName, sourceService);
 
                             // Get attribute checked settings
                             var unmarkedattributes = settings[organisationid][entity.LogicalName].UnmarkedAttributes;
@@ -511,7 +516,7 @@ namespace Colso.DataTransporter
                 bwFill.DoWork += (sender, e) =>
                 {
                     // Retrieve 
-                    List<ManyToManyRelationshipMetadata> sourceList = MetadataHelper.RetrieveAssociations(service);
+                    List<ManyToManyRelationshipMetadata> sourceList = MetadataHelper.RetrieveAssociations(sourceService);
 
                     // Prepare list of items
                     Associations.Clear();
@@ -563,9 +568,9 @@ namespace Colso.DataTransporter
             }
         }
 
-        private void Transfer()
+        private void ExecuteAction(bool preview)
         {
-            if (service == null || targetService == null)
+            if (sourceService == null || targetService == null)
             {
                 MessageBox.Show("You must select both a source and a target organization", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -580,17 +585,17 @@ namespace Colso.DataTransporter
             // Check what transfer we should execute
             if (tabEntities.Equals(tabSourceObjects.SelectedTab))
             {
-                TransferEntities();
+                TransferEntities(preview);
             } else if (tabAssociations.Equals(tabSourceObjects.SelectedTab))
             {
-                TransferAssociations();
+                TransferAssociations(preview);
             } else
             {
                 MessageBox.Show("Unexpected error: no object type selected (Entity/Relationship)", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        private void TransferEntities()
+        private void TransferEntities(bool preview)
         {
             if (lvEntities.SelectedItems.Count == 0)
             {
@@ -601,7 +606,7 @@ namespace Colso.DataTransporter
             // Good time to save the attributes
             SaveUnmarkedAttributes();
 
-            if (cbDelete.Checked)
+            if (!preview && cbDelete.Checked)
             {
                 foreach (ListViewItem entityitem in lvEntities.SelectedItems)
                 {
@@ -626,6 +631,7 @@ namespace Colso.DataTransporter
             SendMessageToStatusBar(this, new StatusBarMessageEventArgs("Start transfering records..."));
 
             var transfermode = EntityRecord.TransferMode.None;
+            if (preview) transfermode |= EntityRecord.TransferMode.Preview;
             if (cbCreate.Checked) transfermode |= EntityRecord.TransferMode.Create;
             if (cbUpdate.Checked) transfermode |= EntityRecord.TransferMode.Update;
             if (cbDelete.Checked) transfermode |= EntityRecord.TransferMode.Delete;
@@ -636,22 +642,52 @@ namespace Colso.DataTransporter
                 var worker = (BackgroundWorker)sender;
                 var entities = (List<EntityMetadata>)e.Argument;
                 var errors = new List<Item<string, string>>();
+                var mappings = settings[organisationid].Mappings;
+
+                if (cbBusinessUnit.Checked)
+                {
+                    SendMessageToStatusBar(this, new StatusBarMessageEventArgs("Retrieving root Business Units..."));
+                    // Add BU mappings
+                    var sourceBU = GetRootBusinessUnit(sourceService);
+                    var targetBU = GetRootBusinessUnit(targetService);
+
+                    if (sourceBU != null && targetBU != null)
+                        mappings.Add(new Item<EntityReference, EntityReference>(sourceBU, targetBU));
+                }
+
+                if (cbTransactionCurrency.Checked)
+                {
+                    SendMessageToStatusBar(this, new StatusBarMessageEventArgs("Retrieving default transaction currencies..."));
+                    // Add BU mappings
+                    var sourceTC = GetDefaultTransactionCurrency(sourceService);
+                    var targetTC = GetDefaultTransactionCurrency(targetService);
+
+                    if (sourceTC != null && targetTC != null)
+                        mappings.Add(new Item<EntityReference, EntityReference>(sourceTC, targetTC));
+                }
 
                 for (int i = 0; i < entities.Count; i++)
                 {
                     var entitymeta = entities[i];
                     var attributes = lvAttributes.CheckedItems.Cast<ListViewItem>().Select(v => (AttributeMetadata)v.Tag).ToList();
-                    var entity = new AppCode.EntityRecord(entitymeta, attributes, transfermode, service, targetService);
+                    var entity = new AppCode.EntityRecord(entitymeta, attributes, transfermode, sourceService, targetService);
 
-                    worker.ReportProgress((i / entities.Count), string.Format("Transfering entity '{0}'...", entity.Name));
+                    worker.ReportProgress((i / entities.Count), string.Format("{1} entity '{0}'...", entity.Name, (preview ? "Previewing" : "Transfering")));
 
                     try
                     {
                         entity.Filter = settings[organisationid][entitymeta.LogicalName].Filter;
-                        entity.Mappings = settings[organisationid].Mappings;
+                        entity.Mappings = mappings;
                         entity.OnStatusMessage += Transfer_OnStatusMessage;
                         entity.Transfer();
                         errors.AddRange(entity.Messages.Select(m => new Item<string, string>(entity.Name, m)));
+
+                        // Show preview window
+                        if (preview)
+                        {
+                            var prvwDialog = new Preview(entity.PreviewList);
+                            prvwDialog.ShowDialog(ParentForm);
+                        }
                     }
                     catch (FaultException<OrganizationServiceFault> error)
                     {
@@ -684,7 +720,7 @@ namespace Colso.DataTransporter
             bwTransferData.RunWorkerAsync(lvEntities.SelectedItems.Cast<ListViewItem>().Select(v => (EntityMetadata)v.Tag).ToList());
         }
 
-        private void TransferAssociations()
+        private void TransferAssociations(bool preview)
         {
             if (lvAssociations.SelectedItems.Count == 0)
             {
@@ -698,6 +734,7 @@ namespace Colso.DataTransporter
             SendMessageToStatusBar(this, new StatusBarMessageEventArgs("Start transfering records..."));
 
             var transfermode = RelationRecord.TransferMode.None;
+            if (preview) transfermode |= RelationRecord.TransferMode.Preview;
             if (cbCreate.Checked) transfermode |= RelationRecord.TransferMode.Create;
             if (cbDelete.Checked) transfermode |= RelationRecord.TransferMode.Delete;
 
@@ -711,9 +748,9 @@ namespace Colso.DataTransporter
                 for (int i = 0; i < associations.Count; i++)
                 {
                     var entitymeta = associations[i];
-                    var ass = new AppCode.RelationRecord(entitymeta, transfermode, service, targetService);
-
-                    worker.ReportProgress((i / associations.Count), string.Format("Transfering relation '{0}'...", ass.Name));
+                    var ass = new AppCode.RelationRecord(entitymeta, transfermode, sourceService, targetService);
+                    
+                    worker.ReportProgress((i / associations.Count), string.Format("{1} relation '{0}'...", ass.Name, (preview ? "Previewing" : "Transfering")));
 
                     try
                     {
@@ -830,6 +867,29 @@ namespace Colso.DataTransporter
             }
         }
 
+        private EntityReference GetRootBusinessUnit(IOrganizationService service)
+        {
+            var qry = new Microsoft.Xrm.Sdk.Query.QueryExpression("businessunit");
+            qry.Criteria.AddCondition("parentbusinessunitid", Microsoft.Xrm.Sdk.Query.ConditionOperator.Null);
+            var results = service.RetrieveMultiple(qry);
+
+            if (results != null && results.Entities.Count > 0)
+                return results.Entities[0].ToEntityReference();
+
+            return null;
+        }
+
+        private EntityReference GetDefaultTransactionCurrency(IOrganizationService service)
+        {
+            var qry = new Microsoft.Xrm.Sdk.Query.QueryExpression("transactioncurrency");
+            var results = service.RetrieveMultiple(qry);
+
+            if (results != null && results.Entities.Count > 0)
+                return results.Entities[0].ToEntityReference();
+
+            return null;
+        }
+        
         #endregion Methods
 
     }

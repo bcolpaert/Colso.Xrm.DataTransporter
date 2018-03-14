@@ -38,6 +38,9 @@
             this.clComment = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.viewImageList = new System.Windows.Forms.ImageList(this.components);
             this.pnlHeader = new System.Windows.Forms.Panel();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.cbTransactionCurrency = new System.Windows.Forms.CheckBox();
+            this.cbBusinessUnit = new System.Windows.Forms.CheckBox();
             this.gbSettings = new System.Windows.Forms.GroupBox();
             this.cbUpdate = new System.Windows.Forms.CheckBox();
             this.cbDelete = new System.Windows.Forms.CheckBox();
@@ -53,6 +56,7 @@
             this.tsbRefreshEntities = new System.Windows.Forms.ToolStripButton();
             this.tsbRefreshAssociations = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnPreviewTransfer = new System.Windows.Forms.ToolStripButton();
             this.tsbTransferDashboards = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.pnlBody = new System.Windows.Forms.TableLayoutPanel();
@@ -80,6 +84,7 @@
             this.clEntity2IntersectAttribute = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.lblAssFilter = new System.Windows.Forms.Label();
             this.pnlHeader.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.gbSettings.SuspendLayout();
             this.gbEnvironments.SuspendLayout();
             this.tsMain.SuspendLayout();
@@ -156,6 +161,7 @@
             // 
             // pnlHeader
             // 
+            this.pnlHeader.Controls.Add(this.groupBox1);
             this.pnlHeader.Controls.Add(this.gbSettings);
             this.pnlHeader.Controls.Add(this.gbEnvironments);
             this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
@@ -164,15 +170,51 @@
             this.pnlHeader.Size = new System.Drawing.Size(800, 100);
             this.pnlHeader.TabIndex = 103;
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.cbTransactionCurrency);
+            this.groupBox1.Controls.Add(this.cbBusinessUnit);
+            this.groupBox1.Location = new System.Drawing.Point(599, 4);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(194, 93);
+            this.groupBox1.TabIndex = 103;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Auto-Mappings";
+            // 
+            // cbTransactionCurrency
+            // 
+            this.cbTransactionCurrency.AutoSize = true;
+            this.cbTransactionCurrency.Checked = true;
+            this.cbTransactionCurrency.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbTransactionCurrency.Location = new System.Drawing.Point(6, 44);
+            this.cbTransactionCurrency.Name = "cbTransactionCurrency";
+            this.cbTransactionCurrency.Size = new System.Drawing.Size(164, 17);
+            this.cbTransactionCurrency.TabIndex = 2;
+            this.cbTransactionCurrency.Text = "Default Transaction Currency";
+            this.cbTransactionCurrency.UseVisualStyleBackColor = true;
+            // 
+            // cbBusinessUnit
+            // 
+            this.cbBusinessUnit.AutoSize = true;
+            this.cbBusinessUnit.Checked = true;
+            this.cbBusinessUnit.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbBusinessUnit.Location = new System.Drawing.Point(6, 21);
+            this.cbBusinessUnit.Name = "cbBusinessUnit";
+            this.cbBusinessUnit.Size = new System.Drawing.Size(116, 17);
+            this.cbBusinessUnit.TabIndex = 0;
+            this.cbBusinessUnit.Text = "Root Business Unit";
+            this.cbBusinessUnit.UseVisualStyleBackColor = true;
+            // 
             // gbSettings
             // 
             this.gbSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.gbSettings.Controls.Add(this.cbUpdate);
             this.gbSettings.Controls.Add(this.cbDelete);
             this.gbSettings.Controls.Add(this.cbCreate);
-            this.gbSettings.Location = new System.Drawing.Point(692, 3);
+            this.gbSettings.Location = new System.Drawing.Point(516, 3);
             this.gbSettings.Name = "gbSettings";
-            this.gbSettings.Size = new System.Drawing.Size(105, 93);
+            this.gbSettings.Size = new System.Drawing.Size(77, 94);
             this.gbSettings.TabIndex = 102;
             this.gbSettings.TabStop = false;
             this.gbSettings.Text = "Settings";
@@ -219,7 +261,7 @@
             this.gbEnvironments.Controls.Add(this.lbTargetValue);
             this.gbEnvironments.Location = new System.Drawing.Point(3, 4);
             this.gbEnvironments.Name = "gbEnvironments";
-            this.gbEnvironments.Size = new System.Drawing.Size(683, 93);
+            this.gbEnvironments.Size = new System.Drawing.Size(507, 93);
             this.gbEnvironments.TabIndex = 101;
             this.gbEnvironments.TabStop = false;
             this.gbEnvironments.Text = "Environments";
@@ -278,6 +320,7 @@
             this.tsbRefreshEntities,
             this.tsbRefreshAssociations,
             this.toolStripSeparator3,
+            this.btnPreviewTransfer,
             this.tsbTransferDashboards,
             this.toolStripSeparator1});
             this.tsMain.Location = new System.Drawing.Point(0, 0);
@@ -324,6 +367,15 @@
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
             this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            // 
+            // btnPreviewTransfer
+            // 
+            this.btnPreviewTransfer.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.preview;
+            this.btnPreviewTransfer.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnPreviewTransfer.Name = "btnPreviewTransfer";
+            this.btnPreviewTransfer.Size = new System.Drawing.Size(68, 22);
+            this.btnPreviewTransfer.Text = "Preview";
+            this.btnPreviewTransfer.Click += new System.EventHandler(this.btnPreviewTransfer_Click);
             // 
             // tsbTransferDashboards
             // 
@@ -588,12 +640,15 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.BackColor = System.Drawing.SystemColors.Window;
             this.Controls.Add(this.tabSourceObjects);
             this.Controls.Add(this.pnlHeader);
             this.Controls.Add(this.tsMain);
             this.Name = "DataTransporter";
             this.Size = new System.Drawing.Size(800, 600);
             this.pnlHeader.ResumeLayout(false);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.gbSettings.ResumeLayout(false);
             this.gbSettings.PerformLayout();
             this.gbEnvironments.ResumeLayout(false);
@@ -663,5 +718,9 @@
         private System.Windows.Forms.ColumnHeader clEntity1IntersectAttribute;
         private System.Windows.Forms.ColumnHeader clEntity2LogicalName;
         private System.Windows.Forms.ColumnHeader clEntity2IntersectAttribute;
+        private System.Windows.Forms.ToolStripButton btnPreviewTransfer;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.CheckBox cbTransactionCurrency;
+        private System.Windows.Forms.CheckBox cbBusinessUnit;
     }
 }

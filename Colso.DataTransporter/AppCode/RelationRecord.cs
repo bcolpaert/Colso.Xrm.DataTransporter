@@ -20,7 +20,8 @@ namespace Colso.DataTransporter.AppCode
         public enum TransferMode
         {
             None = 0,
-            Create = 1,
+            Preview = 1,
+            Create = 2,
             Delete = 4
         }
 
@@ -121,7 +122,7 @@ namespace Colso.DataTransporter.AppCode
                     var entity2id = record.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute);
                     SetProgress(i / totalTaskCount, "");
                     SetStatusMessage("{0}/{1}: delete record", i + 1, missingCount);
-                    Disassociate(relation.SchemaName, relation.Entity1LogicalName, entity1id, relation.Entity2LogicalName, entity2id);
+                    if ((transfermode & TransferMode.Preview) != TransferMode.Preview) Disassociate(relation.SchemaName, relation.Entity1LogicalName, entity1id, relation.Entity2LogicalName, entity2id);
                     deleteCount++;
                 }
             }
@@ -144,7 +145,7 @@ namespace Colso.DataTransporter.AppCode
                         // Create missing record
                         SetStatusMessage("{0}/{1}: create record", i + 1, recordCount);
                         ApplyMappings(record);
-                        Associate(relation.SchemaName, relation.Entity1LogicalName, entity1id, relation.Entity2LogicalName, entity2id);
+                        if ((transfermode & TransferMode.Preview) != TransferMode.Preview) Associate(relation.SchemaName, relation.Entity1LogicalName, entity1id, relation.Entity2LogicalName, entity2id);
                         createCount++;
                     }
                     else

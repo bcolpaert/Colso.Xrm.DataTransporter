@@ -90,7 +90,7 @@ namespace Colso.DataTransporter.AppCode
             // Check if the record already exists on target organization
             //var sourceqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(columns) };
             var sourceqry = BuildFetchXml(entity.LogicalName, columns.ToArray(), Filter);
-            var targetqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(this.entity.PrimaryNameAttribute) };
+            var targetqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(this.entity.PrimaryNameAttribute, "statecode", "statuscode") };
 
 
             SetProgress(0, "Retrieving records...");
@@ -146,11 +146,13 @@ namespace Colso.DataTransporter.AppCode
                 try
                 {
                     var record = sourceRecords.Entities[i];
-                    var recordexist = targetRecords.Entities.Any(e => e.Id.Equals(record.Id));
+                    var targetEntity = targetRecords.Entities.FirstOrDefault(e => e.Id.Equals(record.Id));
+                    var recordexist = targetEntity != null;
                     var name = entity.DisplayName.UserLocalizedLabel == null ? string.Empty : entity.DisplayName.UserLocalizedLabel.Label;
                     SetProgress((i + missingCount) / totalTaskCount, "Transfering entity '{0}'...", name);
 
                     // BC 22/11/2016: some attributes are auto added in the result query
+                    var sourceStateAndStatus = RemoveStateAndStatus(record);
                     RemoveUnwantedAttributes(record);
                     // BC 19/12/2017: null values are not retrieved
                     AddMissingAttributes(record);
@@ -161,8 +163,15 @@ namespace Colso.DataTransporter.AppCode
                         SetStatusMessage("{0}/{1}: update record", i + 1, recordCount);
                         ApplyEntityCollectionMappings(record);
                         ApplyMappings(record);
-                        if ((transfermode & TransferMode.Preview) != TransferMode.Preview) targetService.Update(record);
-                        else PreviewList.Add(ToListViewItem(record, "UPDATE"));
+                        if ((transfermode & TransferMode.Preview) != TransferMode.Preview)
+                        {
+                            targetService.Update(record);
+                            SetState(record, sourceStateAndStatus, targetEntity);
+                        }
+                        else
+                        {
+                            PreviewList.Add(ToListViewItem(record, "UPDATE"));
+                        }
                         updateCount++;
                     }
                     else if (!recordexist && ((transfermode & TransferMode.Create) == TransferMode.Create))
@@ -171,8 +180,15 @@ namespace Colso.DataTransporter.AppCode
                         SetStatusMessage("{0}/{1}: create record", i + 1, recordCount);
                         ApplyEntityCollectionMappings(record);
                         ApplyMappings(record);
-                        if ((transfermode & TransferMode.Preview) != TransferMode.Preview) targetService.Create(record);
-                        else PreviewList.Add(ToListViewItem(record, "CREATE"));
+                        if ((transfermode & TransferMode.Preview) != TransferMode.Preview)
+                        {
+                            targetService.Create(record);
+                            SetState(record, sourceStateAndStatus);
+                        }
+                        else
+                        {
+                            PreviewList.Add(ToListViewItem(record, "CREATE"));
+                        }
                         createCount++;
                     }
                     else
@@ -190,6 +206,43 @@ namespace Colso.DataTransporter.AppCode
 
             if ((transfermode & TransferMode.Preview) != TransferMode.Preview) SetStatusMessage("{0} created; {1} updated; {2} deleted; {3} skipped; {4} errors", createCount, updateCount, deleteCount, skipCount, errorCount);
             else SetStatusMessage("PREVIEW: {0} created; {1} updated; {2} deleted; {3} skipped; {4} errors", createCount, updateCount, deleteCount, skipCount, errorCount);
+        }
+
+        private RecordStateAndStatus RemoveStateAndStatus(Entity record)
+        {
+            var recordStateAndStatus = new RecordStateAndStatus
+            {
+                State = (OptionSetValue)record["statecode"],
+                Status = (OptionSetValue)record["statuscode"]
+            };
+
+            record.Attributes.Remove("statecode");
+            record.Attributes.Remove("statuscode");
+
+            return recordStateAndStatus;
+        }
+
+        private void SetState(Entity target, RecordStateAndStatus sourceStateAndStatus, Entity currentStateAndStatusEntity = null)
+        {
+            if (currentStateAndStatusEntity != null)
+            {
+                var currentStateAndStatus = RemoveStateAndStatus(currentStateAndStatusEntity);
+
+                if (sourceStateAndStatus.State.Value == currentStateAndStatus.State.Value
+                    && sourceStateAndStatus.Status.Value == currentStateAndStatus.Status.Value)
+
+                    return;
+            }
+
+
+            SetStateRequest setState = new SetStateRequest()
+            {
+                EntityMoniker = target.ToEntityReference(),
+                State = sourceStateAndStatus.State,
+                Status = sourceStateAndStatus.Status
+            };
+
+            targetService.Execute(setState);
         }
 
         private void ApplyEntityCollectionMappings(Entity e)

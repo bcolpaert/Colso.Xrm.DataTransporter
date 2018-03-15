@@ -88,9 +88,13 @@ namespace Colso.DataTransporter.AppCode
             if (!columns.Contains(this.entity.PrimaryNameAttribute)) columns.Add(this.entity.PrimaryNameAttribute);
 
             // Check if the record already exists on target organization
-            //var sourceqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(columns) };
             var sourceqry = BuildFetchXml(entity.LogicalName, columns.ToArray(), Filter);
-            var targetqry = new QueryExpression(entity.LogicalName) { ColumnSet = new ColumnSet(this.entity.PrimaryNameAttribute, "statecode", "statuscode") };
+
+            var targetcolumnset = new ColumnSet(this.entity.PrimaryNameAttribute);
+            // Make sure we have a state on the entity
+            if (this.entity.Attributes.Any(a => a != null && !string.IsNullOrEmpty(a.LogicalName) && a.LogicalName.Equals("statecode")))
+                targetcolumnset.AddColumns("statecode", "statuscode");
+            var targetqry = new QueryExpression(entity.LogicalName) { ColumnSet = targetcolumnset };
 
 
             SetProgress(0, "Retrieving records...");
@@ -133,7 +137,8 @@ namespace Colso.DataTransporter.AppCode
                     }
                     else {
                         var record = targetRecords.Entities.Where(e => e.Id.Equals(recordid)).FirstOrDefault();
-                        var lvrecord = ToListViewItem(record, "DELETE");
+                        var recordname = record.GetAttributeValue<string>(this.entity.PrimaryNameAttribute);
+                        var lvrecord = ToListViewItem(recordname, record, "DELETE");
                         PreviewList.Add(lvrecord);
                     }
                     deleteCount++;
@@ -152,15 +157,15 @@ namespace Colso.DataTransporter.AppCode
                     SetProgress((i + missingCount) / totalTaskCount, "Transfering entity '{0}'...", name);
 
                     // BC 22/11/2016: some attributes are auto added in the result query
+                    var recordname = record.GetAttributeValue<string>(this.entity.PrimaryNameAttribute);
+                    AddMissingAttributes(record); // BC 19/12/2017: null values are not retrieved
                     var sourceStateAndStatus = RemoveStateAndStatus(record);
                     RemoveUnwantedAttributes(record);
-                    // BC 19/12/2017: null values are not retrieved
-                    AddMissingAttributes(record);
 
                     if (recordexist && ((transfermode & TransferMode.Update) == TransferMode.Update))
                     {
                         // Update existing record
-                        SetStatusMessage("{0}/{1}: update record", i + 1, recordCount);
+                        SetStatusMessage("{0}/{1}: update record '{2}'", i + 1, recordCount, recordname);
                         ApplyEntityCollectionMappings(record);
                         ApplyMappings(record);
                         if ((transfermode & TransferMode.Preview) != TransferMode.Preview)
@@ -170,14 +175,14 @@ namespace Colso.DataTransporter.AppCode
                         }
                         else
                         {
-                            PreviewList.Add(ToListViewItem(record, "UPDATE"));
+                            PreviewList.Add(ToListViewItem(recordname, record, "UPDATE"));
                         }
                         updateCount++;
                     }
                     else if (!recordexist && ((transfermode & TransferMode.Create) == TransferMode.Create))
                     {
                         // Create missing record
-                        SetStatusMessage("{0}/{1}: create record", i + 1, recordCount);
+                        SetStatusMessage("{0}/{1}: create record '{2}'", i + 1, recordCount, recordname);
                         ApplyEntityCollectionMappings(record);
                         ApplyMappings(record);
                         if ((transfermode & TransferMode.Preview) != TransferMode.Preview)
@@ -187,7 +192,7 @@ namespace Colso.DataTransporter.AppCode
                         }
                         else
                         {
-                            PreviewList.Add(ToListViewItem(record, "CREATE"));
+                            PreviewList.Add(ToListViewItem(recordname, record, "CREATE"));
                         }
                         createCount++;
                     }
@@ -212,8 +217,8 @@ namespace Colso.DataTransporter.AppCode
         {
             var recordStateAndStatus = new RecordStateAndStatus
             {
-                State = (OptionSetValue)record["statecode"],
-                Status = (OptionSetValue)record["statuscode"]
+                State = record.GetAttributeValue<OptionSetValue>("statecode"),
+                Status = record.GetAttributeValue<OptionSetValue>("statuscode")
             };
 
             record.Attributes.Remove("statecode");
@@ -228,8 +233,9 @@ namespace Colso.DataTransporter.AppCode
             {
                 var currentStateAndStatus = RemoveStateAndStatus(currentStateAndStatusEntity);
 
-                if (sourceStateAndStatus.State.Value == currentStateAndStatus.State.Value
-                    && sourceStateAndStatus.Status.Value == currentStateAndStatus.Status.Value)
+                // If the entity has no state: return
+                if (sourceStateAndStatus.State == null || currentStateAndStatus.State == null ||
+                    (sourceStateAndStatus.State.Value == currentStateAndStatus.State.Value && sourceStateAndStatus.Status.Value == currentStateAndStatus.Status.Value))
 
                     return;
             }
@@ -438,11 +444,11 @@ namespace Colso.DataTransporter.AppCode
                 entity.Attributes.Add(att, null);
         }
 
-        private ListViewItem ToListViewItem(Entity entity, string action)
+        private ListViewItem ToListViewItem(string name, Entity entity, string action)
         {
             var lv = new ListViewItem(action);
-            lv.SubItems.Add(entity.GetAttributeValue<string>(this.entity.PrimaryNameAttribute));
             lv.SubItems.Add(entity.Id.ToString());
+            lv.SubItems.Add(name);
 
             // Add all attributes
             foreach (var item in entity.Attributes)

@@ -27,13 +27,28 @@ namespace Colso.DataTransporter.Forms
             lvItems.Items.Clear();
 
             // Add columns
-            lvItems.Columns.Add("Action", -2, HorizontalAlignment.Left);
+            lvItems.Columns.Add("Action", 80, HorizontalAlignment.Left);
+            lvItems.Columns.Add("Id", 225, HorizontalAlignment.Left);
             lvItems.Columns.Add("Name", -2, HorizontalAlignment.Left);
-            lvItems.Columns.Add("Id", -2, HorizontalAlignment.Left);
 
             // Add items
             foreach (var item in items)
                 lvItems.Items.Add(item);
+        }
+
+        private void SetListViewSorting(ListView listview, int column)
+        {
+            if (listview.Sorting == SortOrder.Ascending)
+                listview.Sorting = SortOrder.Descending;
+            else
+                listview.Sorting = SortOrder.Ascending;
+
+            listview.ListViewItemSorter = new ListViewItemComparer(column, listview.Sorting);
+        }
+
+        private void lvItems_ColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            SetListViewSorting(lvItems, e.Column);
         }
     }
 }

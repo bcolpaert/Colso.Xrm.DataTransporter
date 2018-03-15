@@ -424,6 +424,7 @@ namespace Colso.DataTransporter
                         {
                             // Retrieve 
                             var entitymeta = MetadataHelper.RetrieveEntity(entity.LogicalName, sourceService);
+                            entityitem.Tag = entitymeta;
 
                             // Get attribute checked settings
                             var unmarkedattributes = settings[organisationid][entity.LogicalName].UnmarkedAttributes;

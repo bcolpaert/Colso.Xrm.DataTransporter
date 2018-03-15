@@ -121,7 +121,7 @@ namespace Colso.DataTransporter.AppCode
             var request = new RetrieveAllEntitiesRequest
             {
                 RetrieveAsIfPublished = true,
-                EntityFilters = EntityFilters.Relationships
+                EntityFilters = EntityFilters.Entity | EntityFilters.Relationships
             };
 
             var response = (RetrieveAllEntitiesResponse)oService.Execute(request);
@@ -155,7 +155,7 @@ namespace Colso.DataTransporter.AppCode
                 RetrieveEntityRequest request = new RetrieveEntityRequest
                 {
                     LogicalName = logicalName,
-                    EntityFilters = EntityFilters.Attributes | EntityFilters.Relationships
+                    EntityFilters = EntityFilters.Entity | EntityFilters.Attributes | EntityFilters.Relationships
                 };
 
                 RetrieveEntityResponse response = (RetrieveEntityResponse)oService.Execute(request);

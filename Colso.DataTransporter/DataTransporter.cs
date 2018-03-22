@@ -110,22 +110,22 @@ namespace Colso.DataTransporter
             }
         }
 
-        public void ClosingPlugin(PluginCloseInfo info)
-        {
-            // First save settings file
-            SettingFileHandler.SaveConfigData(settings);
+        //public void ClosingPlugin(PluginCloseInfo info)
+        //{
+        //    // First save settings file
+        //    SettingFileHandler.SaveConfigData(settings);
 
-            if (info.FormReason != CloseReason.None ||
-                info.ToolBoxReason == ToolBoxCloseReason.CloseAll ||
-                info.ToolBoxReason == ToolBoxCloseReason.CloseAllExceptActive)
-            {
-                return;
-            }
+        //    if (info.FormReason != CloseReason.None ||
+        //        info.ToolBoxReason == ToolBoxCloseReason.CloseAll ||
+        //        info.ToolBoxReason == ToolBoxCloseReason.CloseAllExceptActive)
+        //    {
+        //        return;
+        //    }
 
-            info.Cancel = MessageBox.Show(@"Are you sure you want to close this tab?", @"Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes;
-        }
+        //    info.Cancel = MessageBox.Show(@"Are you sure you want to close this tab?", @"Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes;
+        //}
 
-        public void UpdateConnection(IOrganizationService newService, ConnectionDetail connectionDetail, string actionName = "", object parameter = null)
+        public override void UpdateConnection(IOrganizationService newService, ConnectionDetail connectionDetail, string actionName = "", object parameter = null)
         {
             if (actionName == "TargetOrganization")
             {

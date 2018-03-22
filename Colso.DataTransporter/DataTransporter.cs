@@ -19,7 +19,7 @@ using XrmToolBox.Extensibility.Interfaces;
 
 namespace Colso.DataTransporter
 {
-    public partial class DataTransporter : UserControl, IXrmToolBoxPluginControl, IGitHubPlugin, IHelpPlugin, IStatusBarMessenger
+    public partial class DataTransporter : PluginControlBase, IXrmToolBoxPluginControl, IGitHubPlugin, IHelpPlugin, IStatusBarMessenger, IPayPalPlugin
     {
         #region Variables
 
@@ -56,8 +56,8 @@ namespace Colso.DataTransporter
 
         #region XrmToolbox
 
-        public event EventHandler OnCloseTool;
-        public event EventHandler OnRequestConnection;
+        //public event EventHandler OnCloseTool;
+        //public event EventHandler OnRequestConnection;
         public event EventHandler<StatusBarMessageEventArgs> SendMessageToStatusBar;
 
         public Image PluginLogo
@@ -65,10 +65,10 @@ namespace Colso.DataTransporter
             get { return null; }
         }
 
-        public IOrganizationService Service
-        {
-            get { throw new NotImplementedException(); }
-        }
+        //public IOrganizationService Service
+        //{
+        //    get { throw new NotImplementedException(); }
+        //}
 
         public string HelpUrl
         {
@@ -91,6 +91,22 @@ namespace Colso.DataTransporter
             get
             {
                 return "MscrmTools";
+            }
+        }
+
+        public string DonationDescription
+        {
+            get
+            {
+                return "Donation for Data Transporter Tool - XrmToolBox";
+            }
+        }
+
+        public string EmailAccount
+        {
+            get
+            {
+                return "bramcolpaert@outlook.com";
             }
         }
 
@@ -152,17 +168,20 @@ namespace Colso.DataTransporter
 
         private void btnSelectTarget_Click(object sender, EventArgs e)
         {
-            if (OnRequestConnection != null)
-            {
-                var args = new RequestConnectionEventArgs { ActionName = "TargetOrganization", Control = this };
-                OnRequestConnection(this, args);
-            }
+            //if (OnRequestConnection != null)
+            //{
+            //    var args = new RequestConnectionEventArgs { ActionName = "TargetOrganization", Control = this };
+            //    OnRequestConnection(this, args);
+            //}
+            var args = new RequestConnectionEventArgs { ActionName = "TargetOrganization", Control = this };
+            RaiseRequestConnectionEvent(args);
         }
 
         private void tsbCloseThisTab_Click(object sender, EventArgs e)
         {
-            if (OnCloseTool != null)
-                OnCloseTool(this, null);
+            //if (OnCloseTool != null)
+            //    OnCloseTool(this, null);
+            CloseTool();
         }
 
         private void tsbRefreshEntities_Click(object sender, EventArgs e)
@@ -316,15 +335,18 @@ namespace Colso.DataTransporter
         {
             if (sourceService == null)
             {
-                if (OnRequestConnection != null)
-                {
-                    var args = new RequestConnectionEventArgs
-                    {
-                        ActionName = "Load",
-                        Control = this
-                    };
-                    OnRequestConnection(this, args);
-                }
+                //if (OnRequestConnection != null)
+                //{
+                //    var args = new RequestConnectionEventArgs
+                //    {
+                //        ActionName = "Load",
+                //        Control = this
+                //    };
+                //    OnRequestConnection(this, args);
+                //}
+                var args = new RequestConnectionEventArgs { ActionName = "Load", Control = this };
+                RaiseRequestConnectionEvent(args);
+
                 return false;
             }
             else

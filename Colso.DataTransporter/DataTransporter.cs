@@ -280,6 +280,21 @@ namespace Colso.DataTransporter
             }
         }
 
+        private void donateInUSDToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenDonationPage("USD");
+        }
+
+        private void donateInEURToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenDonationPage("EUR");
+        }
+
+        private void donateInGBPToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            OpenDonationPage("GBP");
+        }
+
         #endregion Form events
 
         #region Methods
@@ -916,7 +931,13 @@ namespace Colso.DataTransporter
 
             return null;
         }
-        
+
+        private void OpenDonationPage(string currency)
+        {
+            var url = string.Format("https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business={0}&lc=GB&item_name={1}&currency_code={2}&no_note=0&bn=PP-DonationsBF:btn_donateCC_LG.gif:NonHostedGuest", EmailAccount, DonationDescription, currency);
+            System.Diagnostics.Process.Start(url);
+        }
+
         #endregion Methods
 
     }

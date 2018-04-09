@@ -229,14 +229,16 @@ namespace Colso.DataTransporter.AppCode
 
         private void SetState(Entity target, RecordStateAndStatus sourceStateAndStatus, Entity currentStateAndStatusEntity = null)
         {
+            // Don't update state when it's not available
+            if (sourceStateAndStatus.State == null)
+                return;
+
             if (currentStateAndStatusEntity != null)
             {
                 var currentStateAndStatus = RemoveStateAndStatus(currentStateAndStatusEntity);
 
                 // If the entity has no state: return
-                if (sourceStateAndStatus.State == null || currentStateAndStatus.State == null ||
-                    (sourceStateAndStatus.State.Value == currentStateAndStatus.State.Value && sourceStateAndStatus.Status.Value == currentStateAndStatus.Status.Value))
-
+                if (currentStateAndStatus.State == null || (sourceStateAndStatus.State.Value == currentStateAndStatus.State.Value && sourceStateAndStatus.Status.Value == currentStateAndStatus.Status.Value))
                     return;
             }
 

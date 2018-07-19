@@ -13,9 +13,36 @@ namespace Colso.DataTransporter.Forms
         private static Color HC_COMMENT = Color.GreenYellow;
         private static Color HC_INNERTEXT = Color.Black;
 
+        private bool _isHighlightBusy = false;
+
+        [System.Runtime.InteropServices.DllImport("user32.dll")]
+        private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, IntPtr lp);
+        [System.Runtime.InteropServices.DllImport("User32.dll")]
+        private static extern int GetScrollPos(IntPtr hWnd, int nBar);
+
+        public enum Message : uint
+        {
+            WM_VSCROLL = 0x0115,
+            WM_SETREDRAW = 0x0b
+        }
+
+        public enum ScrollBarType : uint
+        {
+            SbHorz = 0,
+            SbVert = 1,
+            SbCtl = 2,
+            SbBoth = 3
+        }
+
+        public enum ScrollBarCommands : uint
+        {
+            SB_THUMBPOSITION = 4
+        }
+
         public string Filter
         {
-            get {
+            get
+            {
                 return txtFilter.Text.Trim();
             }
             set
@@ -38,13 +65,30 @@ namespace Colso.DataTransporter.Forms
 
         private void txtFilter_TextChanged(object sender, EventArgs e)
         {
+            tmrTextChanged.Stop();
+            if (!_isHighlightBusy) tmrTextChanged.Start();
+            txtFilter.Invalidate();
+        }
+
+        private void tmrTextChanged_Tick(object sender, EventArgs e)
+        {
             HighlightRTF(txtFilter);
+            txtFilter.Invalidate();
         }
 
         private void HighlightRTF(RichTextBox rtb)
         {
+            tmrTextChanged.Stop();
+            _isHighlightBusy = true;
+
+            // BeginUpdate
+            SendMessage(rtb.Handle, (int)Message.WM_SETREDRAW, (IntPtr)0, IntPtr.Zero);
+
             var selStart = rtb.SelectionStart;
             var selLength = rtb.SelectionLength;
+
+            var scrollPos = GetScrollPos(rtb.Handle, (int)ScrollBarType.SbVert);
+            scrollPos <<= 16;
 
             int k = 0;
 
@@ -155,6 +199,16 @@ namespace Colso.DataTransporter.Forms
 
             // reset selection
             rtb.Select(selStart, selLength);
+            rtb.SelectionColor = HC_INNERTEXT;
+            // reset scroll position
+            uint wParam = (uint)ScrollBarCommands.SB_THUMBPOSITION | (uint)scrollPos;
+            SendMessage(rtb.Handle, (int)Message.WM_VSCROLL, new IntPtr(wParam), IntPtr.Zero);
+
+            //EndUpdate
+            SendMessage(rtb.Handle, (int)Message.WM_SETREDRAW, (IntPtr)1, IntPtr.Zero);
+
+            _isHighlightBusy = false;
         }
+
     }
 }

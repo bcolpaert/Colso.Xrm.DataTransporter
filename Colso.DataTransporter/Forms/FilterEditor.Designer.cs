@@ -28,11 +28,13 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             this.panel1 = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.btnClose = new System.Windows.Forms.Button();
             this.txtFilter = new System.Windows.Forms.RichTextBox();
+            this.tmrTextChanged = new System.Windows.Forms.Timer(this.components);
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -92,6 +94,11 @@
             this.txtFilter.Text = "";
             this.txtFilter.TextChanged += new System.EventHandler(this.txtFilter_TextChanged);
             // 
+            // tmrTextChanged
+            // 
+            this.tmrTextChanged.Interval = 500;
+            this.tmrTextChanged.Tick += new System.EventHandler(this.tmrTextChanged_Tick);
+            // 
             // FilterEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -120,5 +127,6 @@
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Button btnClose;
         private System.Windows.Forms.RichTextBox txtFilter;
+        private System.Windows.Forms.Timer tmrTextChanged;
     }
 }

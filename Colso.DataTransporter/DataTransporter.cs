@@ -7,6 +7,7 @@ using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
@@ -19,7 +20,7 @@ using XrmToolBox.Extensibility.Interfaces;
 
 namespace Colso.DataTransporter
 {
-    public partial class DataTransporter : PluginControlBase, IXrmToolBoxPluginControl, IGitHubPlugin, IHelpPlugin, IStatusBarMessenger, IPayPalPlugin
+    public partial class DataTransporter : MultipleConnectionsPluginControlBase, IXrmToolBoxPluginControl, IGitHubPlugin, IHelpPlugin, IStatusBarMessenger, IPayPalPlugin
     {
         #region Variables
 
@@ -27,11 +28,6 @@ namespace Colso.DataTransporter
         /// Information panel
         /// </summary>
         private Panel informationPanel;
-
-        /// <summary>
-        /// Dynamics CRM 2011 organization service
-        /// </summary>
-        private IOrganizationService sourceService;
 
         /// <summary>
         /// Dynamics CRM 2011 target organization service
@@ -45,6 +41,11 @@ namespace Colso.DataTransporter
         // keep list of listview items 
         List<ListViewItem> Entities = new List<ListViewItem>();
         List<ListViewItem> Associations = new List<ListViewItem>();
+        private enum ServiceType
+        {
+            Source,
+            Target
+        }
 
         #endregion Variables
 
@@ -110,43 +111,6 @@ namespace Colso.DataTransporter
             }
         }
 
-        //public void ClosingPlugin(PluginCloseInfo info)
-        //{
-        //    // First save settings file
-        //    SettingFileHandler.SaveConfigData(settings);
-
-        //    if (info.FormReason != CloseReason.None ||
-        //        info.ToolBoxReason == ToolBoxCloseReason.CloseAll ||
-        //        info.ToolBoxReason == ToolBoxCloseReason.CloseAllExceptActive)
-        //    {
-        //        return;
-        //    }
-
-        //    info.Cancel = MessageBox.Show(@"Are you sure you want to close this tab?", @"Question", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes;
-        //}
-
-        public override void UpdateConnection(IOrganizationService newService, ConnectionDetail connectionDetail, string actionName = "", object parameter = null)
-        {
-            if (actionName == "TargetOrganization")
-            {
-                SetConnectionLabel(connectionDetail.ConnectionName, "Target");
-                targetService = newService;
-            }
-            else
-            {
-                organisationid = connectionDetail.ConnectionId.Value;
-                SetConnectionLabel(connectionDetail.ConnectionName, "Source");
-                sourceService = newService;
-                // init buttons -> value based on connection
-                InitMappings();
-                InitFilter();
-                // Save settings file
-                SettingFileHandler.SaveConfigData(settings);
-                // Load entities when source connection changes
-                PopulateEntities();
-            }
-        }
-
         public string GetCompany()
         {
             return GetType().GetCompany();
@@ -168,19 +132,38 @@ namespace Colso.DataTransporter
 
         private void btnSelectTarget_Click(object sender, EventArgs e)
         {
-            //if (OnRequestConnection != null)
-            //{
-            //    var args = new RequestConnectionEventArgs { ActionName = "TargetOrganization", Control = this };
-            //    OnRequestConnection(this, args);
-            //}
-            var args = new RequestConnectionEventArgs { ActionName = "TargetOrganization", Control = this };
-            RaiseRequestConnectionEvent(args);
+            AddAdditionalOrganization();
+        }
+
+        protected override void ConnectionDetailsUpdated(NotifyCollectionChangedEventArgs e)
+        {
+            // For now, only support one target org
+            if (e.Action.Equals(NotifyCollectionChangedAction.Add))
+            {
+                var detail = (ConnectionDetail)e.NewItems[0];
+                SetConnectionLabel(detail.ConnectionName, ServiceType.Target);
+                targetService = detail.ServiceClient;
+            }
+        }
+
+        protected void DataTransporter_ConnectionUpdated(object sender, ConnectionUpdatedEventArgs e)
+        {
+            var service = e.Service;
+            var detail = e.ConnectionDetail;
+
+            organisationid = detail.ConnectionId.Value;
+            SetConnectionLabel(detail.ConnectionName, ServiceType.Source);
+            // init buttons -> value based on connection
+            InitMappings();
+            InitFilter();
+            // Save settings file
+            SettingFileHandler.SaveConfigData(settings);
+            // Load entities when source connection changes
+            PopulateEntities();
         }
 
         private void tsbCloseThisTab_Click(object sender, EventArgs e)
         {
-            //if (OnCloseTool != null)
-            //    OnCloseTool(this, null);
             CloseTool();
         }
 
@@ -295,6 +278,12 @@ namespace Colso.DataTransporter
             OpenDonationPage("GBP");
         }
 
+        protected void DataTransporter_OnCloseTool(object sender, EventArgs e)
+        {
+            // First save settings file
+            SettingFileHandler.SaveConfigData(settings);
+        }
+
         #endregion Form events
 
         #region Methods
@@ -323,16 +312,16 @@ namespace Colso.DataTransporter
             btnFilter.ForeColor = string.IsNullOrEmpty(filter) ? Color.Black : Color.Blue;
         }
 
-        private void SetConnectionLabel(string name, string serviceType)
+        private void SetConnectionLabel(string name, ServiceType serviceType)
         {
             switch (serviceType)
             {
-                case "Source":
+                case ServiceType.Source:
                     lbSourceValue.Text = name;
                     lbSourceValue.ForeColor = Color.Green;
                     break;
 
-                case "Target":
+                case ServiceType.Target:
                     lbTargetValue.Text = name;
                     lbTargetValue.ForeColor = Color.Green;
                     break;
@@ -348,7 +337,7 @@ namespace Colso.DataTransporter
 
         private bool CheckConnection()
         {
-            if (sourceService == null)
+            if (this.Service == null)
             {
                 //if (OnRequestConnection != null)
                 //{
@@ -388,7 +377,7 @@ namespace Colso.DataTransporter
                 bwFill.DoWork += (sender, e) =>
                 {
                     // Retrieve 
-                    List<EntityMetadata> sourceList = MetadataHelper.RetrieveEntities(sourceService);
+                    List<EntityMetadata> sourceList = MetadataHelper.RetrieveEntities(this.Service);
 
                     // Prepare list of items
                     Entities.Clear();
@@ -396,8 +385,9 @@ namespace Colso.DataTransporter
                     foreach (EntityMetadata entity in sourceList)
                     {
                         var name = entity.DisplayName.UserLocalizedLabel == null ? string.Empty : entity.DisplayName.UserLocalizedLabel.Label;
-                        var item = new ListViewItem(name);
-                        item.Tag = entity;
+                        var item = new ListViewItem(name) {
+                            Tag = entity
+                        };
                         item.SubItems.Add(entity.LogicalName);
 
                         if (!entity.IsCustomizable.Value)
@@ -460,7 +450,7 @@ namespace Colso.DataTransporter
                         bwFill.DoWork += (sender, e) =>
                         {
                             // Retrieve 
-                            var entitymeta = MetadataHelper.RetrieveEntity(entity.LogicalName, sourceService);
+                            var entitymeta = MetadataHelper.RetrieveEntity(entity.LogicalName, this.Service);
                             entityitem.Tag = entitymeta;
 
                             // Get attribute checked settings
@@ -487,27 +477,29 @@ namespace Colso.DataTransporter
 
                                 var name = attribute.DisplayName.UserLocalizedLabel == null ? string.Empty : attribute.DisplayName.UserLocalizedLabel.Label;
                                 var typename = attribute.AttributeTypeName == null ? string.Empty : attribute.AttributeTypeName.Value;
-                                var item = new ListViewItem(name);
-                                item.Tag = attribute;
-                                item.SubItems.Add(attribute.LogicalName);
-                                item.SubItems.Add(typename.EndsWith("Type") ? typename.Substring(0, typename.LastIndexOf("Type")) : typename);
 
-                                if (attribute.IsValidForCreate == null || !attribute.IsValidForCreate.Value)
+                                if (typename != "EntityName")
                                 {
-                                    item.ForeColor = Color.Gray;
-                                    item.ToolTipText = "This attribute is not valid for create";
-                                    item.SubItems.Add(item.ToolTipText);
-                                }
-                                else if (attribute.IsValidForUpdate == null || !attribute.IsValidForUpdate.Value)
-                                {
-                                    item.ForeColor = Color.Gray;
-                                    item.ToolTipText = "This attribute is not valid for update";
-                                    item.SubItems.Add(item.ToolTipText);
-                                }
+                                    var item = new ListViewItem(name){ Tag = attribute };
+                                    item.SubItems.Add(attribute.LogicalName);
+                                    item.SubItems.Add(typename.EndsWith("Type") ? typename.Substring(0, typename.LastIndexOf("Type")) : typename);
 
-                                item.Checked = !unmarkedattributes.Contains(attribute.LogicalName);
-                                sourceAttributesList.Add(item);
+                                    if (attribute.IsValidForCreate == null || !attribute.IsValidForCreate.Value)
+                                    {
+                                        item.ForeColor = Color.Gray;
+                                        item.ToolTipText = "This attribute is not valid for create";
+                                        item.SubItems.Add(item.ToolTipText);
+                                    }
+                                    else if (attribute.IsValidForUpdate == null || !attribute.IsValidForUpdate.Value)
+                                    {
+                                        item.ForeColor = Color.Gray;
+                                        item.ToolTipText = "This attribute is not valid for update";
+                                        item.SubItems.Add(item.ToolTipText);
+                                    }
 
+                                    item.Checked = !unmarkedattributes.Contains(attribute.LogicalName);
+                                    sourceAttributesList.Add(item);
+                                }
                             }
 
                             e.Result = sourceAttributesList;
@@ -558,7 +550,7 @@ namespace Colso.DataTransporter
                 bwFill.DoWork += (sender, e) =>
                 {
                     // Retrieve 
-                    List<ManyToManyRelationshipMetadata> sourceList = MetadataHelper.RetrieveAssociations(sourceService);
+                    List<ManyToManyRelationshipMetadata> sourceList = MetadataHelper.RetrieveAssociations(this.Service);
 
                     // Prepare list of items
                     Associations.Clear();
@@ -566,8 +558,7 @@ namespace Colso.DataTransporter
                     foreach (ManyToManyRelationshipMetadata ass in sourceList)
                     {
                         var name = ass.SchemaName;
-                        var item = new ListViewItem(name);
-                        item.Tag = ass;
+                        var item = new ListViewItem(name) { Tag = ass };
                         item.SubItems.Add(ass.IntersectEntityName);
                         item.SubItems.Add(ass.Entity1LogicalName);
                         item.SubItems.Add(ass.Entity1IntersectAttribute);
@@ -612,7 +603,7 @@ namespace Colso.DataTransporter
 
         private void ExecuteAction(bool preview)
         {
-            if (sourceService == null || targetService == null)
+            if (this.Service == null || targetService == null)
             {
                 MessageBox.Show("You must select both a source and a target organization", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
@@ -670,7 +661,7 @@ namespace Colso.DataTransporter
             ManageWorkingState(true);
 
             informationPanel = InformationPanel.GetInformationPanel(this, "Transfering records...", 340, 150);
-            SendMessageToStatusBar(this, new StatusBarMessageEventArgs("Start transfering records..."));
+            SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(0, "Start transfering records..."));
 
             var transfermode = EntityRecord.TransferMode.None;
             if (preview) transfermode |= EntityRecord.TransferMode.Preview;
@@ -688,9 +679,9 @@ namespace Colso.DataTransporter
 
                 if (cbBusinessUnit.Checked)
                 {
-                    SendMessageToStatusBar(this, new StatusBarMessageEventArgs("Retrieving root Business Units..."));
+                    SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(1, "Retrieving root Business Units..."));
                     // Add BU mappings
-                    var sourceBU = GetRootBusinessUnit(sourceService);
+                    var sourceBU = GetRootBusinessUnit(this.Service);
                     var targetBU = GetRootBusinessUnit(targetService);
 
                     if (sourceBU != null && targetBU != null)
@@ -699,20 +690,41 @@ namespace Colso.DataTransporter
 
                 if (cbTransactionCurrency.Checked)
                 {
-                    SendMessageToStatusBar(this, new StatusBarMessageEventArgs("Retrieving default transaction currencies..."));
+                    SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(1, "Retrieving default transaction currencies..."));
                     // Add BU mappings
-                    var sourceTC = GetDefaultTransactionCurrency(sourceService);
+                    var sourceTC = GetDefaultTransactionCurrency(this.Service);
                     var targetTC = GetDefaultTransactionCurrency(targetService);
 
                     if (sourceTC != null && targetTC != null)
                         mappings.Add(new Item<EntityReference, EntityReference>(sourceTC, targetTC));
                 }
 
+                if (cbSystemUserEntityReferences.Checked)
+                {
+                    SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(1, "Retrieving systemuser mappings..."));
+                    // Add BU mappings
+                    var sourceUsers = GetSystemUsers(this.Service);
+                    var targetUsers = GetSystemUsers(targetService);
+
+                    foreach (var su in sourceUsers)
+                    {
+                        var domainname = su.GetAttributeValue<string>("domainname");
+                        // Make sure we have a domain name
+                        if (string.IsNullOrEmpty(domainname))
+                        {
+                            var tu = targetUsers.Where(u => u.GetAttributeValue<string>("domainname") == domainname).FirstOrDefault()?.ToEntityReference();
+                            // Do we have a target user?
+                            if (tu != null)
+                                mappings.Add(new Item<EntityReference, EntityReference>(su.ToEntityReference(), tu));
+                        }
+                    }
+                }
+
                 for (int i = 0; i < entities.Count; i++)
                 {
                     var entitymeta = entities[i];
                     var attributes = lvAttributes.CheckedItems.Cast<ListViewItem>().Select(v => (AttributeMetadata)v.Tag).ToList();
-                    var entity = new AppCode.EntityRecord(entitymeta, attributes, transfermode, sourceService, targetService);
+                    var entity = new AppCode.EntityRecord(entitymeta, attributes, transfermode, this.Service, targetService);
 
                     worker.ReportProgress((i / entities.Count), string.Format("{1} entity '{0}'...", entity.Name, (preview ? "Previewing" : "Transfering")));
 
@@ -757,7 +769,7 @@ namespace Colso.DataTransporter
             bwTransferData.ProgressChanged += (sender, e) =>
             {
                 InformationPanel.ChangeInformationPanelMessage(informationPanel, e.UserState.ToString());
-                SendMessageToStatusBar(this, new StatusBarMessageEventArgs(e.UserState.ToString()));
+                SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(e.ProgressPercentage * 100, e.UserState.ToString()));
             };
             bwTransferData.RunWorkerAsync(lvEntities.SelectedItems.Cast<ListViewItem>().Select(v => (EntityMetadata)v.Tag).ToList());
         }
@@ -773,7 +785,7 @@ namespace Colso.DataTransporter
             ManageWorkingState(true);
 
             informationPanel = InformationPanel.GetInformationPanel(this, "Transfering records...", 340, 150);
-            SendMessageToStatusBar(this, new StatusBarMessageEventArgs("Start transfering records..."));
+            SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(0, "Start associating records..."));
 
             var transfermode = RelationRecord.TransferMode.None;
             if (preview) transfermode |= RelationRecord.TransferMode.Preview;
@@ -790,7 +802,7 @@ namespace Colso.DataTransporter
                 for (int i = 0; i < associations.Count; i++)
                 {
                     var entitymeta = associations[i];
-                    var ass = new AppCode.RelationRecord(entitymeta, transfermode, sourceService, targetService);
+                    var ass = new AppCode.RelationRecord(entitymeta, transfermode, this.Service, targetService);
                     
                     worker.ReportProgress((i / associations.Count), string.Format("{1} relation '{0}'...", ass.Name, (preview ? "Previewing" : "Transfering")));
 
@@ -827,14 +839,14 @@ namespace Colso.DataTransporter
             bwTransferData.ProgressChanged += (sender, e) =>
             {
                 InformationPanel.ChangeInformationPanelMessage(informationPanel, e.UserState.ToString());
-                SendMessageToStatusBar(this, new StatusBarMessageEventArgs(e.UserState.ToString()));
+                SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(e.ProgressPercentage * 100, e.UserState.ToString()));
             };
             bwTransferData.RunWorkerAsync(lvAssociations.SelectedItems.Cast<ListViewItem>().Select(v => (ManyToManyRelationshipMetadata)v.Tag).ToList());
         }
 
         private void Transfer_OnStatusMessage(object sender, EventArgs e)
         {
-            SendMessageToStatusBar(this, new StatusBarMessageEventArgs(((StatusMessageEventArgs)e).Message));
+            SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(((StatusMessageEventArgs)e).Message));
         }
 
         private void SetListViewSorting(ListView listview, int column)
@@ -930,6 +942,15 @@ namespace Colso.DataTransporter
                 return results.Entities[0].ToEntityReference();
 
             return null;
+        }
+
+        private Entity[] GetSystemUsers(IOrganizationService service)
+        {
+            var qry = new Microsoft.Xrm.Sdk.Query.QueryExpression("systemuser");
+            qry.ColumnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet("domainname");
+            var results = service.RetrieveMultiple(qry);
+
+            return results.Entities.ToArray<Entity>();
         }
 
         private void OpenDonationPage(string currency)

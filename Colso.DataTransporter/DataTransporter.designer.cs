@@ -39,6 +39,7 @@
             this.viewImageList = new System.Windows.Forms.ImageList(this.components);
             this.pnlHeader = new System.Windows.Forms.Panel();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.cbSystemUserEntityReferences = new System.Windows.Forms.CheckBox();
             this.cbTransactionCurrency = new System.Windows.Forms.CheckBox();
             this.cbBusinessUnit = new System.Windows.Forms.CheckBox();
             this.gbSettings = new System.Windows.Forms.GroupBox();
@@ -51,9 +52,18 @@
             this.btnSelectTarget = new System.Windows.Forms.Button();
             this.lbTargetValue = new System.Windows.Forms.Label();
             this.tsMain = new System.Windows.Forms.ToolStrip();
+            this.tsbCloseThisTab = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbRefreshEntities = new System.Windows.Forms.ToolStripButton();
+            this.tsbRefreshAssociations = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnPreviewTransfer = new System.Windows.Forms.ToolStripButton();
+            this.tsbTransferDashboards = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbDonate = new System.Windows.Forms.ToolStripDropDownButton();
+            this.donateInUSDToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.donateInEURToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.donateInGBPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlBody = new System.Windows.Forms.TableLayoutPanel();
             this.gbAttributes = new System.Windows.Forms.GroupBox();
             this.btnEntityMappings = new System.Windows.Forms.Button();
@@ -78,15 +88,6 @@
             this.clEntity2LogicalName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clEntity2IntersectAttribute = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.lblAssFilter = new System.Windows.Forms.Label();
-            this.tsbCloseThisTab = new System.Windows.Forms.ToolStripButton();
-            this.tsbRefreshEntities = new System.Windows.Forms.ToolStripButton();
-            this.tsbRefreshAssociations = new System.Windows.Forms.ToolStripButton();
-            this.btnPreviewTransfer = new System.Windows.Forms.ToolStripButton();
-            this.tsbTransferDashboards = new System.Windows.Forms.ToolStripButton();
-            this.tsbDonate = new System.Windows.Forms.ToolStripDropDownButton();
-            this.donateInUSDToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.donateInEURToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.donateInGBPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlHeader.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.gbSettings.SuspendLayout();
@@ -177,6 +178,7 @@
             // groupBox1
             // 
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.cbSystemUserEntityReferences);
             this.groupBox1.Controls.Add(this.cbTransactionCurrency);
             this.groupBox1.Controls.Add(this.cbBusinessUnit);
             this.groupBox1.Location = new System.Drawing.Point(599, 4);
@@ -185,6 +187,18 @@
             this.groupBox1.TabIndex = 103;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Auto-Mappings";
+            // 
+            // cbSystemUserEntityReferences
+            // 
+            this.cbSystemUserEntityReferences.AutoSize = true;
+            this.cbSystemUserEntityReferences.Checked = true;
+            this.cbSystemUserEntityReferences.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cbSystemUserEntityReferences.Location = new System.Drawing.Point(6, 66);
+            this.cbSystemUserEntityReferences.Name = "cbSystemUserEntityReferences";
+            this.cbSystemUserEntityReferences.Size = new System.Drawing.Size(172, 17);
+            this.cbSystemUserEntityReferences.TabIndex = 3;
+            this.cbSystemUserEntityReferences.Text = "System User Entity References";
+            this.cbSystemUserEntityReferences.UseVisualStyleBackColor = true;
             // 
             // cbTransactionCurrency
             // 
@@ -334,20 +348,100 @@
             this.tsMain.TabIndex = 90;
             this.tsMain.Text = "toolStrip1";
             // 
+            // tsbCloseThisTab
+            // 
+            this.tsbCloseThisTab.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.tsbCloseThisTab.Image = ((System.Drawing.Image)(resources.GetObject("tsbCloseThisTab.Image")));
+            this.tsbCloseThisTab.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbCloseThisTab.Name = "tsbCloseThisTab";
+            this.tsbCloseThisTab.Size = new System.Drawing.Size(55, 22);
+            this.tsbCloseThisTab.Text = "Close";
+            this.tsbCloseThisTab.Click += new System.EventHandler(this.tsbCloseThisTab_Click);
+            // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
             this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
+            // 
+            // tsbRefreshEntities
+            // 
+            this.tsbRefreshEntities.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.tsbRefreshEntities.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.entities;
+            this.tsbRefreshEntities.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbRefreshEntities.Name = "tsbRefreshEntities";
+            this.tsbRefreshEntities.Size = new System.Drawing.Size(107, 22);
+            this.tsbRefreshEntities.Text = "Refresh Entities";
+            this.tsbRefreshEntities.Click += new System.EventHandler(this.tsbRefreshEntities_Click);
+            // 
+            // tsbRefreshAssociations
+            // 
+            this.tsbRefreshAssociations.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.relation;
+            this.tsbRefreshAssociations.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbRefreshAssociations.Name = "tsbRefreshAssociations";
+            this.tsbRefreshAssociations.Size = new System.Drawing.Size(135, 22);
+            this.tsbRefreshAssociations.Text = "Refresh Associations";
+            this.tsbRefreshAssociations.Click += new System.EventHandler(this.tsbRefreshAssociations_Click);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
             this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
             // 
+            // btnPreviewTransfer
+            // 
+            this.btnPreviewTransfer.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.preview;
+            this.btnPreviewTransfer.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnPreviewTransfer.Name = "btnPreviewTransfer";
+            this.btnPreviewTransfer.Size = new System.Drawing.Size(68, 22);
+            this.btnPreviewTransfer.Text = "Preview";
+            this.btnPreviewTransfer.Click += new System.EventHandler(this.btnPreviewTransfer_Click);
+            // 
+            // tsbTransferDashboards
+            // 
+            this.tsbTransferDashboards.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.export;
+            this.tsbTransferDashboards.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbTransferDashboards.Name = "tsbTransferDashboards";
+            this.tsbTransferDashboards.Size = new System.Drawing.Size(96, 22);
+            this.tsbTransferDashboards.Text = "Transfer Data";
+            this.tsbTransferDashboards.Click += new System.EventHandler(this.tsbTransferData_Click);
+            // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            // 
+            // tsbDonate
+            // 
+            this.tsbDonate.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.donateInUSDToolStripMenuItem,
+            this.donateInEURToolStripMenuItem,
+            this.donateInGBPToolStripMenuItem});
+            this.tsbDonate.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.paypal;
+            this.tsbDonate.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbDonate.Name = "tsbDonate";
+            this.tsbDonate.Size = new System.Drawing.Size(74, 22);
+            this.tsbDonate.Text = "Donate";
+            // 
+            // donateInUSDToolStripMenuItem
+            // 
+            this.donateInUSDToolStripMenuItem.Name = "donateInUSDToolStripMenuItem";
+            this.donateInUSDToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.donateInUSDToolStripMenuItem.Text = "Donate in USD";
+            this.donateInUSDToolStripMenuItem.Click += new System.EventHandler(this.donateInUSDToolStripMenuItem_Click);
+            // 
+            // donateInEURToolStripMenuItem
+            // 
+            this.donateInEURToolStripMenuItem.Name = "donateInEURToolStripMenuItem";
+            this.donateInEURToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.donateInEURToolStripMenuItem.Text = "Donate in EUR";
+            this.donateInEURToolStripMenuItem.Click += new System.EventHandler(this.donateInEURToolStripMenuItem_Click);
+            // 
+            // donateInGBPToolStripMenuItem
+            // 
+            this.donateInGBPToolStripMenuItem.Name = "donateInGBPToolStripMenuItem";
+            this.donateInGBPToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
+            this.donateInGBPToolStripMenuItem.Text = "Donate in GBP";
+            this.donateInGBPToolStripMenuItem.Click += new System.EventHandler(this.donateInGBPToolStripMenuItem_Click);
             // 
             // pnlBody
             // 
@@ -594,86 +688,6 @@
             this.lblAssFilter.TabIndex = 68;
             this.lblAssFilter.Text = "Filter:";
             // 
-            // tsbCloseThisTab
-            // 
-            this.tsbCloseThisTab.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.tsbCloseThisTab.Image = ((System.Drawing.Image)(resources.GetObject("tsbCloseThisTab.Image")));
-            this.tsbCloseThisTab.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbCloseThisTab.Name = "tsbCloseThisTab";
-            this.tsbCloseThisTab.Size = new System.Drawing.Size(55, 22);
-            this.tsbCloseThisTab.Text = "Close";
-            this.tsbCloseThisTab.Click += new System.EventHandler(this.tsbCloseThisTab_Click);
-            // 
-            // tsbRefreshEntities
-            // 
-            this.tsbRefreshEntities.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.tsbRefreshEntities.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.entities;
-            this.tsbRefreshEntities.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbRefreshEntities.Name = "tsbRefreshEntities";
-            this.tsbRefreshEntities.Size = new System.Drawing.Size(107, 22);
-            this.tsbRefreshEntities.Text = "Refresh Entities";
-            this.tsbRefreshEntities.Click += new System.EventHandler(this.tsbRefreshEntities_Click);
-            // 
-            // tsbRefreshAssociations
-            // 
-            this.tsbRefreshAssociations.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.relation;
-            this.tsbRefreshAssociations.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbRefreshAssociations.Name = "tsbRefreshAssociations";
-            this.tsbRefreshAssociations.Size = new System.Drawing.Size(135, 22);
-            this.tsbRefreshAssociations.Text = "Refresh Associations";
-            this.tsbRefreshAssociations.Click += new System.EventHandler(this.tsbRefreshAssociations_Click);
-            // 
-            // btnPreviewTransfer
-            // 
-            this.btnPreviewTransfer.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.preview;
-            this.btnPreviewTransfer.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnPreviewTransfer.Name = "btnPreviewTransfer";
-            this.btnPreviewTransfer.Size = new System.Drawing.Size(68, 22);
-            this.btnPreviewTransfer.Text = "Preview";
-            this.btnPreviewTransfer.Click += new System.EventHandler(this.btnPreviewTransfer_Click);
-            // 
-            // tsbTransferDashboards
-            // 
-            this.tsbTransferDashboards.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.export;
-            this.tsbTransferDashboards.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbTransferDashboards.Name = "tsbTransferDashboards";
-            this.tsbTransferDashboards.Size = new System.Drawing.Size(96, 22);
-            this.tsbTransferDashboards.Text = "Transfer Data";
-            this.tsbTransferDashboards.Click += new System.EventHandler(this.tsbTransferData_Click);
-            // 
-            // tsbDonate
-            // 
-            this.tsbDonate.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.donateInUSDToolStripMenuItem,
-            this.donateInEURToolStripMenuItem,
-            this.donateInGBPToolStripMenuItem});
-            this.tsbDonate.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.paypal;
-            this.tsbDonate.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbDonate.Name = "tsbDonate";
-            this.tsbDonate.Size = new System.Drawing.Size(74, 22);
-            this.tsbDonate.Text = "Donate";
-            // 
-            // donateInUSDToolStripMenuItem
-            // 
-            this.donateInUSDToolStripMenuItem.Name = "donateInUSDToolStripMenuItem";
-            this.donateInUSDToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.donateInUSDToolStripMenuItem.Text = "Donate in USD";
-            this.donateInUSDToolStripMenuItem.Click += new System.EventHandler(this.donateInUSDToolStripMenuItem_Click);
-            // 
-            // donateInEURToolStripMenuItem
-            // 
-            this.donateInEURToolStripMenuItem.Name = "donateInEURToolStripMenuItem";
-            this.donateInEURToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.donateInEURToolStripMenuItem.Text = "Donate in EUR";
-            this.donateInEURToolStripMenuItem.Click += new System.EventHandler(this.donateInEURToolStripMenuItem_Click);
-            // 
-            // donateInGBPToolStripMenuItem
-            // 
-            this.donateInGBPToolStripMenuItem.Name = "donateInGBPToolStripMenuItem";
-            this.donateInGBPToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.donateInGBPToolStripMenuItem.Text = "Donate in GBP";
-            this.donateInGBPToolStripMenuItem.Click += new System.EventHandler(this.donateInGBPToolStripMenuItem_Click);
-            // 
             // DataTransporter
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -684,6 +698,8 @@
             this.Controls.Add(this.tsMain);
             this.Name = "DataTransporter";
             this.Size = new System.Drawing.Size(800, 600);
+            this.OnCloseTool += new System.EventHandler(this.DataTransporter_OnCloseTool);
+            this.ConnectionUpdated += new XrmToolBox.Extensibility.PluginControlBase.ConnectionUpdatedHandler(this.DataTransporter_ConnectionUpdated);
             this.pnlHeader.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
@@ -764,5 +780,6 @@
         private System.Windows.Forms.ToolStripMenuItem donateInUSDToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem donateInEURToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem donateInGBPToolStripMenuItem;
+        private System.Windows.Forms.CheckBox cbSystemUserEntityReferences;
     }
 }

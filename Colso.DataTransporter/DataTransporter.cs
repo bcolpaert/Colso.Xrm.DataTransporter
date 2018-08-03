@@ -238,7 +238,7 @@ namespace Colso.DataTransporter
 
         private void btnMappings_Click(object sender, EventArgs e)
         {
-            var entities = lvEntities.Items.Cast<ListViewItem>().ToArray();
+            var entities = Entities.ToArray();
             var mappingDialog = new MappingList(entities, settings[organisationid].Mappings);
             mappingDialog.ShowDialog(ParentForm);
             settings[organisationid].Mappings = mappingDialog.GetMappingList();
@@ -675,7 +675,8 @@ namespace Colso.DataTransporter
                 var worker = (BackgroundWorker)sender;
                 var entities = (List<EntityMetadata>)e.Argument;
                 var errors = new List<Item<string, string>>();
-                var mappings = settings[organisationid].Mappings;
+                var manualMappings = settings[organisationid].Mappings;
+                var autoMappings = new List<Item<EntityReference, EntityReference>>();
 
                 if (cbBusinessUnit.Checked)
                 {
@@ -685,7 +686,7 @@ namespace Colso.DataTransporter
                     var targetBU = GetRootBusinessUnit(targetService);
 
                     if (sourceBU != null && targetBU != null)
-                        mappings.Add(new Item<EntityReference, EntityReference>(sourceBU, targetBU));
+                        autoMappings.Add(new Item<EntityReference, EntityReference>(sourceBU, targetBU));
                 }
 
                 if (cbTransactionCurrency.Checked)
@@ -696,7 +697,7 @@ namespace Colso.DataTransporter
                     var targetTC = GetDefaultTransactionCurrency(targetService);
 
                     if (sourceTC != null && targetTC != null)
-                        mappings.Add(new Item<EntityReference, EntityReference>(sourceTC, targetTC));
+                        autoMappings.Add(new Item<EntityReference, EntityReference>(sourceTC, targetTC));
                 }
 
                 if (cbSystemUserEntityReferences.Checked)
@@ -710,12 +711,12 @@ namespace Colso.DataTransporter
                     {
                         var domainname = su.GetAttributeValue<string>("domainname");
                         // Make sure we have a domain name
-                        if (string.IsNullOrEmpty(domainname))
+                        if (!string.IsNullOrEmpty(domainname))
                         {
                             var tu = targetUsers.Where(u => u.GetAttributeValue<string>("domainname") == domainname).FirstOrDefault()?.ToEntityReference();
                             // Do we have a target user?
                             if (tu != null)
-                                mappings.Add(new Item<EntityReference, EntityReference>(su.ToEntityReference(), tu));
+                                autoMappings.Add(new Item<EntityReference, EntityReference>(su.ToEntityReference(), tu));
                         }
                     }
                 }
@@ -731,7 +732,8 @@ namespace Colso.DataTransporter
                     try
                     {
                         entity.Filter = settings[organisationid][entitymeta.LogicalName].Filter;
-                        entity.Mappings = mappings;
+                        entity.Mappings = autoMappings;
+                        entity.Mappings.AddRange(manualMappings);
                         entity.OnStatusMessage += Transfer_OnStatusMessage;
                         entity.Transfer();
                         errors.AddRange(entity.Messages.Select(m => new Item<string, string>(entity.Name, m)));

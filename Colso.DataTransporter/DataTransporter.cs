@@ -722,7 +722,7 @@ namespace Colso.DataTransporter
                         // Make sure we have a domain name
                         if (!string.IsNullOrEmpty(domainname))
                         {
-                            var tu = targetUsers.Where(u => u.GetAttributeValue<string>("fullname") == domainname).FirstOrDefault()?.ToEntityReference();
+                            var tu = targetUsers.Where(u => u.GetAttributeValue<string>("domainname") == domainname).FirstOrDefault()?.ToEntityReference();
                             // Do we have a target user?
                             if (tu != null)
                                 autoMappings.Add(new Item<EntityReference, EntityReference>(su.ToEntityReference(), tu));

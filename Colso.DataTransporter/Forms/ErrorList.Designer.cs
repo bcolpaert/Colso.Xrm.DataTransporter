@@ -46,17 +46,19 @@
             this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(688, 60);
+            this.panel1.Size = new System.Drawing.Size(917, 74);
             this.panel1.TabIndex = 0;
             // 
             // label2
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(6, 29);
+            this.label2.Location = new System.Drawing.Point(8, 36);
+            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(372, 13);
+            this.label2.Size = new System.Drawing.Size(440, 19);
             this.label2.TabIndex = 1;
             this.label2.Text = "This list indicates errors that occured when saving checked dashboards";
             // 
@@ -64,9 +66,10 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(4, 4);
+            this.label1.Location = new System.Drawing.Point(5, 5);
+            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(117, 25);
+            this.label1.Size = new System.Drawing.Size(147, 32);
             this.label1.TabIndex = 0;
             this.label1.Text = "List of errors";
             // 
@@ -79,12 +82,14 @@
             this.columnHeader1,
             this.columnHeader2});
             this.lvErrors.LabelEdit = true;
-            this.lvErrors.Location = new System.Drawing.Point(12, 66);
+            this.lvErrors.Location = new System.Drawing.Point(16, 81);
+            this.lvErrors.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.lvErrors.Name = "lvErrors";
-            this.lvErrors.Size = new System.Drawing.Size(656, 235);
+            this.lvErrors.Size = new System.Drawing.Size(873, 288);
             this.lvErrors.TabIndex = 1;
             this.lvErrors.UseCompatibleStateImageBehavior = false;
             this.lvErrors.View = System.Windows.Forms.View.Details;
+            this.lvErrors.KeyUp += new System.Windows.Forms.KeyEventHandler(this.lvErrorsListView_KeyUp);
             // 
             // columnHeader1
             // 
@@ -99,9 +104,10 @@
             // btnClose
             // 
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnClose.Location = new System.Drawing.Point(593, 307);
+            this.btnClose.Location = new System.Drawing.Point(791, 378);
+            this.btnClose.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(75, 23);
+            this.btnClose.Size = new System.Drawing.Size(100, 28);
             this.btnClose.TabIndex = 2;
             this.btnClose.Text = "Close";
             this.btnClose.UseVisualStyleBackColor = true;
@@ -109,12 +115,13 @@
             // 
             // ErrorList
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(680, 342);
+            this.ClientSize = new System.Drawing.Size(907, 421);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.lvErrors);
             this.Controls.Add(this.panel1);
+            this.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "ErrorList";

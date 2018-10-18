@@ -2,6 +2,7 @@
 using Colso.Xrm.DataTransporter.Models;
 using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Windows.Forms;
 
 namespace Colso.DataTransporter.Forms
@@ -31,5 +32,23 @@ namespace Colso.DataTransporter.Forms
                 lvErrors.Items.Add(item);
             }
         }
+
+        private void lvErrorsListView_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (sender != lvErrors) return;
+
+            if (e.Control && e.KeyCode == Keys.C)
+                CopySelectedValuesToClipboard();
+        }
+
+        private void CopySelectedValuesToClipboard()
+        {
+            var builder = new StringBuilder();
+            foreach (ListViewItem item in lvErrors.SelectedItems)
+                builder.AppendLine(item.SubItems[1].Text);
+
+            Clipboard.SetText(builder.ToString());
+        }
+
     }
 }

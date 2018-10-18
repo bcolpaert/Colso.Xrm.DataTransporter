@@ -693,11 +693,20 @@ namespace Colso.DataTransporter
                 {
                     SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(1, "Retrieving default transaction currencies..."));
                     // Add BU mappings
-                    var sourceTC = GetDefaultTransactionCurrency(this.Service);
-                    var targetTC = GetDefaultTransactionCurrency(targetService);
+                    var sourceTC = GetTransactionCurrency(this.Service);
+                    var targetTC = GetTransactionCurrency(targetService);
 
-                    if (sourceTC != null && targetTC != null)
-                        autoMappings.Add(new Item<EntityReference, EntityReference>(sourceTC, targetTC));
+                    foreach (var stc in sourceTC)
+                    {
+                        var isoCurrencyCode = stc.GetAttributeValue<string>("isocurrencycode");
+                        if(!string.IsNullOrEmpty(isoCurrencyCode))
+                        {
+                            var ttc = targetTC.Where(u => u.GetAttributeValue<string>("isocurrencycode") == isoCurrencyCode).FirstOrDefault()?.ToEntityReference();
+                            // Do we have a target user?
+                            if (ttc != null)
+                                autoMappings.Add(new Item<EntityReference, EntityReference>(stc.ToEntityReference(), ttc));
+                        }
+                    }
                 }
 
                 if (cbSystemUserEntityReferences.Checked)
@@ -935,15 +944,16 @@ namespace Colso.DataTransporter
             return null;
         }
 
-        private EntityReference GetDefaultTransactionCurrency(IOrganizationService service)
+        private Entity[] GetTransactionCurrency(IOrganizationService service)
         {
             var qry = new Microsoft.Xrm.Sdk.Query.QueryExpression("transactioncurrency");
+            qry.ColumnSet.AddColumns("isocurrencycode");
             var results = service.RetrieveMultiple(qry);
 
             if (results != null && results.Entities.Count > 0)
-                return results.Entities[0].ToEntityReference();
+                return results.Entities.ToArray<Entity>();
 
-            return null;
+            return new Entity[0];
         }
 
         private Entity[] GetSystemUsers(IOrganizationService service)

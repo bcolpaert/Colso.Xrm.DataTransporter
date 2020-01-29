@@ -44,6 +44,34 @@ namespace Colso.DataTransporter.AppCode
     {
         public Settings() { }
 
+        private List<Item<string, int>> _Sortcolumns;
+        public List<Item<string, int>> Sortcolumns
+        {
+            get { return _Sortcolumns; }
+            set { _Sortcolumns = value; }
+        }
+
+        private List<Item<string, EntitySettings>> _Entities;
+        public List<Item<string, EntitySettings>> Entities
+        {
+            get { return _Entities; }
+            set { _Entities = value; }
+        }
+
+        public EntitySettings this[string logicalname]
+        {
+            get
+            {
+                if (_Entities == null)
+                    _Entities = new List<Item<string, EntitySettings>>();
+
+                if (!_Entities.Any(o => o.Key == logicalname))
+                    _Entities.Add(new Item<string, EntitySettings>(logicalname, new EntitySettings()));
+
+                return _Entities.Where(o => o.Key == logicalname).Select(o => o.Value).FirstOrDefault();
+            }
+        }
+
         private List<Item<Guid, Organisations>> _Organisations;
         public List<Item<Guid, Organisations>> Organisations
         {
@@ -70,17 +98,17 @@ namespace Colso.DataTransporter.AppCode
     {
         public Organisations()
         {
-            this.Sortcolumns = new List<Item<string, int>>();
+            //this.Sortcolumns = new List<Item<string, int>>();
             this.Mappings = new List<Item<EntityReference, EntityReference>>();
-            this.Entities = new List<Item<string, EntitySettings>>();
+            //this.Entities = new List<Item<string, EntitySettings>>();
         }
 
-        private List<Item<string, int>> _Sortcolumns;
-        public List<Item<string, int>> Sortcolumns
-        {
-            get { return _Sortcolumns; }
-            set { _Sortcolumns = value; }
-        }
+        //private List<Item<string, int>> _Sortcolumns;
+        //public List<Item<string, int>> Sortcolumns
+        //{
+        //    get { return _Sortcolumns; }
+        //    set { _Sortcolumns = value; }
+        //}
 
         private List<Item<EntityReference, EntityReference>> _Mappings;
         public List<Item<EntityReference, EntityReference>> Mappings
@@ -89,26 +117,26 @@ namespace Colso.DataTransporter.AppCode
             set { _Mappings = value; }
         }
 
-        private List<Item<string, EntitySettings>> _Entities;
-        public List<Item<string, EntitySettings>> Entities
-        {
-            get { return _Entities; }
-            set { _Entities = value; }
-        }
+        //private List<Item<string, EntitySettings>> _Entities;
+        //public List<Item<string, EntitySettings>> Entities
+        //{
+        //    get { return _Entities; }
+        //    set { _Entities = value; }
+        //}
 
-        public EntitySettings this[string logicalname]
-        {
-            get
-            {
-                if (_Entities == null)
-                    _Entities = new List<Item<string, EntitySettings>>();
+        //public EntitySettings this[string logicalname]
+        //{
+        //    get
+        //    {
+        //        if (_Entities == null)
+        //            _Entities = new List<Item<string, EntitySettings>>();
 
-                if (!_Entities.Any(o => o.Key == logicalname))
-                    _Entities.Add(new Item<string, EntitySettings>(logicalname, new EntitySettings()));
+        //        if (!_Entities.Any(o => o.Key == logicalname))
+        //            _Entities.Add(new Item<string, EntitySettings>(logicalname, new EntitySettings()));
 
-                return _Entities.Where(o => o.Key == logicalname).Select(o => o.Value).FirstOrDefault();
-            }
-        }
+        //        return _Entities.Where(o => o.Key == logicalname).Select(o => o.Value).FirstOrDefault();
+        //    }
+        //}
     }
 
     public class EntitySettings

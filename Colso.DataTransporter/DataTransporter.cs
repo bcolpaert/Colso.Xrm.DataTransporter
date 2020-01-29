@@ -14,6 +14,7 @@ using System.Linq;
 using System.ServiceModel;
 using System.Windows.Forms;
 using System.Xml;
+using System.Xml.Serialization;
 using XrmToolBox.Extensibility;
 using XrmToolBox.Extensibility.Args;
 using XrmToolBox.Extensibility.Interfaces;
@@ -255,10 +256,95 @@ namespace Colso.DataTransporter
                 {
                     var filter = string.Empty;
                     var entity = (EntityMetadata)entityitem.Tag;
-                    var filterDialog = new FilterEditor(filter = settings[organisationid][entity.LogicalName].Filter);
+                    var filterDialog = new FilterEditor(filter = settings[entity.LogicalName].Filter);
                     filterDialog.ShowDialog(ParentForm);
-                    settings[organisationid][entity.LogicalName].Filter = filterDialog.Filter;
+                    settings[entity.LogicalName].Filter = filterDialog.Filter;
                     InitFilter();
+                }
+            }
+        }
+
+        private void btnSaveSettings_Click(object sender, EventArgs e)
+        {
+            if (lvEntities.SelectedItems.Count > 0)
+            {
+                var entityitem = lvEntities.SelectedItems[0];
+
+                if (entityitem != null && entityitem.Tag != null)
+                {
+                    var entity = (EntityMetadata)entityitem.Tag;
+                    using (var dlg = new SaveFileDialog())
+                    {
+                        dlg.FileName = string.Concat(entity.LogicalName, ".xml");
+                        dlg.Filter = "xml files (*.xml)|*.xml";
+                        dlg.FilterIndex = 2;
+                        dlg.RestoreDirectory = true;
+
+                        if (dlg.ShowDialog() == DialogResult.OK)
+                        {
+                            // Good time to save the attributes
+                            SaveUnmarkedAttributes();
+
+                            // Save filter + selected attributes + mappings (org independant)
+                            var es = new EntitySetting()
+                            {
+                                Filter = settings[entity.LogicalName].Filter,
+                                UnmarkedAttributes = settings[entity.LogicalName].UnmarkedAttributes,
+                                Mappings = settings[organisationid].Mappings
+                            };
+
+                            System.IO.Stream myStream;
+                            if ((myStream = dlg.OpenFile()) != null)
+                            {
+                                try
+                                {
+                                    var SerializerObj = new XmlSerializer(typeof(EntitySetting));
+                                    SerializerObj.Serialize(myStream, es);
+                                }
+                                finally
+                                {
+                                    myStream.Close();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void btnLoadSettings_Click(object sender, EventArgs e)
+        {
+            if (lvEntities.SelectedItems.Count > 0)
+            {
+                var entityitem = lvEntities.SelectedItems[0];
+
+                if (entityitem != null && entityitem.Tag != null)
+                {
+                    var entity = (EntityMetadata)entityitem.Tag;
+                    using (var dlg = new OpenFileDialog())
+                    {
+                        dlg.Filter = "xml files (*.xml)|*.xml";
+                        dlg.FilterIndex = 2;
+                        dlg.RestoreDirectory = true;
+
+                        if (dlg.ShowDialog() == DialogResult.OK)
+                        {
+                            using (var myFileStream = new System.IO.FileStream(dlg.FileName, System.IO.FileMode.Open))
+                            {
+                                var mySerializer = new XmlSerializer(typeof(EntitySetting));
+                                var es = (EntitySetting)mySerializer.Deserialize(myFileStream);
+                                // Reset settings
+                                settings[entity.LogicalName].Filter = es.Filter;
+                                settings[entity.LogicalName].UnmarkedAttributes = es.UnmarkedAttributes;
+                                settings[organisationid].Mappings = es.Mappings;
+
+                                // Init new settings
+                                InitMappings();
+                                InitFilter();
+                                PopulateAttributes();
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -305,7 +391,7 @@ namespace Colso.DataTransporter
                 if (entityitem != null && entityitem.Tag != null)
                 {
                     var entity = (EntityMetadata)entityitem.Tag;
-                    filter = settings[organisationid][entity.LogicalName].Filter;
+                    filter = settings[entity.LogicalName].Filter;
                 }
             }
 
@@ -454,15 +540,16 @@ namespace Colso.DataTransporter
                             entityitem.Tag = entitymeta;
 
                             // Get attribute checked settings
-                            var unmarkedattributes = settings[organisationid][entity.LogicalName].UnmarkedAttributes;
+                            var unmarkedattributes = settings[entity.LogicalName].UnmarkedAttributes;
 
                             // Prepare list of items
                             var sourceAttributesList = new List<ListViewItem>();
 
-                            // Only use create/editable attributes && properties which are valid for read
+                            // Only use create/editable attributes && properties which are valid for read and have a display name
                             var attributes = entitymeta.Attributes
                                 .Where(a => (a.IsValidForCreate != null && a.IsValidForCreate.Value) || (a.IsValidForUpdate != null && a.IsValidForUpdate.Value))
                                 .Where(a => a.IsValidForRead != null && a.IsValidForRead.Value)
+                                .Where(a => a.DisplayName != null && a.DisplayName.UserLocalizedLabel != null && !string.IsNullOrEmpty(a.DisplayName.UserLocalizedLabel.Label))
                                 .ToList();
 
                             if(attributes.FirstOrDefault(x=> x.LogicalName == "statecode") == null)
@@ -647,7 +734,7 @@ namespace Colso.DataTransporter
                     {
                         var entity = (EntityMetadata)entityitem.Tag;
 
-                        if (!string.IsNullOrEmpty(settings[organisationid][entity.LogicalName].Filter))
+                        if (!string.IsNullOrEmpty(settings[entity.LogicalName].Filter))
                         {
                             var msg = string.Format("You have a filter applied on \"{0}\" and checked the \"Delete\" flag. All records on the target environment which don't match the filtered soure set will be deleted! Are you sure you want to continue?", entity.LogicalName);
                             var result = MessageBox.Show(msg, "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
@@ -731,7 +818,7 @@ namespace Colso.DataTransporter
 
                     try
                     {
-                        entity.Filter = settings[organisationid][entitymeta.LogicalName].Filter;
+                        entity.Filter = settings[entitymeta.LogicalName].Filter;
                         entity.Mappings = autoMappings;
                         entity.Mappings.AddRange(manualMappings);
                         entity.OnStatusMessage += Transfer_OnStatusMessage;
@@ -853,11 +940,11 @@ namespace Colso.DataTransporter
 
         private void SetListViewSorting(ListView listview, int column)
         {
-            var setting = settings[organisationid].Sortcolumns.Where(s => s.Key == listview.Name).FirstOrDefault();
+            var setting = settings.Sortcolumns.Where(s => s.Key == listview.Name).FirstOrDefault();
             if (setting == null)
             {
                 setting = new Item<string, int>(listview.Name, -1);
-                settings[organisationid].Sortcolumns.Add(setting);
+                settings.Sortcolumns.Add(setting);
             }
 
             if (setting.Value != column)
@@ -918,7 +1005,7 @@ namespace Colso.DataTransporter
                 {
                     var entity = (EntityMetadata)entityitem.Tag;
                     var attributes = lvAttributes.Items.Cast<ListViewItem>().Where(i => !i.Checked).Select(v => (AttributeMetadata)v.Tag).Select(a => a.LogicalName).ToList();
-                    settings[organisationid][entity.LogicalName].UnmarkedAttributes = attributes;
+                    settings[entity.LogicalName].UnmarkedAttributes = attributes;
                 }
             }
         }

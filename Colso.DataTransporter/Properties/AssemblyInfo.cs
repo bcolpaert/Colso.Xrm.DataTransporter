@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Bram Colpaert @C-Clear Partners")]
 [assembly: AssemblyProduct("Colso.Xrm.DataTransporter")]
-[assembly: AssemblyCopyright("Copyright © Colso 2018")]
+[assembly: AssemblyCopyright("Copyright © Colso 2020")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -14,5 +14,4 @@ using System.Runtime.InteropServices;
 
 [assembly: Guid("aef1b9bd-4f00-4fed-bbba-f72cddc61de3")]
 
-[assembly: AssemblyVersion("1.2018.8.1")]
-[assembly: AssemblyFileVersion("1.2018.8.1")]
+[assembly: AssemblyVersion("1.2020.2.*")]

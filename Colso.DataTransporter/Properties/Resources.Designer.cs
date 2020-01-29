@@ -19,7 +19,7 @@ namespace Colso.Xrm.DataTransporter.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public class Resources {
@@ -83,6 +83,16 @@ namespace Colso.Xrm.DataTransporter.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        public static System.Drawing.Bitmap load {
+            get {
+                object obj = ResourceManager.GetObject("load", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         public static System.Drawing.Bitmap paypal {
             get {
                 object obj = ResourceManager.GetObject("paypal", resourceCulture);
@@ -106,6 +116,16 @@ namespace Colso.Xrm.DataTransporter.Properties {
         public static System.Drawing.Bitmap relation {
             get {
                 object obj = ResourceManager.GetObject("relation", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        public static System.Drawing.Bitmap save {
+            get {
+                object obj = ResourceManager.GetObject("save", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

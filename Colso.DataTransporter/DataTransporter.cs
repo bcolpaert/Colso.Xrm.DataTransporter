@@ -1,5 +1,6 @@
 ﻿using Colso.DataTransporter.AppCode;
 using Colso.DataTransporter.Forms;
+using Colso.Xrm.DataTransporter.AppCode;
 using Colso.Xrm.DataTransporter.Models;
 using McTools.Xrm.Connection;
 using Microsoft.Crm.Sdk.Messages;
@@ -38,6 +39,7 @@ namespace Colso.DataTransporter
         private bool workingstate = false;
         private Guid organisationid;
         private Settings settings;
+        private Playlist currentplaylist;
 
         // keep list of listview items 
         List<ListViewItem> Entities = new List<ListViewItem>();
@@ -188,6 +190,14 @@ namespace Colso.DataTransporter
             ExecuteAction(true);
         }
 
+        private void tsbPlaylist_Click(object sender, EventArgs e)
+        {
+            if (currentplaylist == null) currentplaylist = new Playlist();
+            var mappingDialog = new PlaylistDialog(currentplaylist);
+            mappingDialog.ShowDialog(ParentForm);
+            currentplaylist = mappingDialog.Playlist;
+        }
+
         private void tabSourceObjects_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (Associations.Count == 0)
@@ -288,6 +298,7 @@ namespace Colso.DataTransporter
                             // Save filter + selected attributes + mappings (org independant)
                             var es = new EntitySetting()
                             {
+                                LogicalName = entity.LogicalName,
                                 Filter = settings[entity.LogicalName].Filter,
                                 UnmarkedAttributes = settings[entity.LogicalName].UnmarkedAttributes,
                                 Mappings = settings[organisationid].Mappings
@@ -332,11 +343,20 @@ namespace Colso.DataTransporter
                             using (var myFileStream = new System.IO.FileStream(dlg.FileName, System.IO.FileMode.Open))
                             {
                                 var mySerializer = new XmlSerializer(typeof(EntitySetting));
-                                var es = (EntitySetting)mySerializer.Deserialize(myFileStream);
-                                // Reset settings
-                                settings[entity.LogicalName].Filter = es.Filter;
-                                settings[entity.LogicalName].UnmarkedAttributes = es.UnmarkedAttributes;
-                                settings[organisationid].Mappings = es.Mappings;
+
+                                try
+                                {
+                                    var es = (EntitySetting)mySerializer.Deserialize(myFileStream);
+                                    // Reset settings
+                                    settings[entity.LogicalName].Filter = es.Filter;
+                                    settings[entity.LogicalName].UnmarkedAttributes = es.UnmarkedAttributes;
+                                    settings[organisationid].Mappings = es.Mappings;
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Error deserializing
+                                    MessageBox.Show(ex.Message, "Error opening Entity Setting", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                }
 
                                 // Init new settings
                                 InitMappings();
@@ -547,15 +567,16 @@ namespace Colso.DataTransporter
 
                             // Only use create/editable attributes && properties which are valid for read and have a display name
                             var attributes = entitymeta.Attributes
-                                .Where(a => (a.IsValidForCreate != null && a.IsValidForCreate.Value) || (a.IsValidForUpdate != null && a.IsValidForUpdate.Value))
+                                .Where(a => (a.IsValidForCreate != null && a.IsValidForCreate.Value))// || (a.IsValidForUpdate != null && a.IsValidForUpdate.Value))
                                 .Where(a => a.IsValidForRead != null && a.IsValidForRead.Value)
                                 .Where(a => a.DisplayName != null && a.DisplayName.UserLocalizedLabel != null && !string.IsNullOrEmpty(a.DisplayName.UserLocalizedLabel.Label))
                                 .ToList();
 
-                            if(attributes.FirstOrDefault(x=> x.LogicalName == "statecode") == null)
-                            {
-                                attributes.Add(entitymeta.Attributes.FirstOrDefault(x => x.LogicalName == "statecode"));
-                            }
+                            // This is not necessary
+                            //if(attributes.FirstOrDefault(x=> x.LogicalName == "statecode") == null)
+                            //{
+                            //    attributes.Add(entitymeta.Attributes.FirstOrDefault(x => x.LogicalName == "statecode"));
+                            //}
 
                             foreach (AttributeMetadata attribute in attributes)
                             {
@@ -750,11 +771,11 @@ namespace Colso.DataTransporter
             informationPanel = InformationPanel.GetInformationPanel(this, "Transfering records...", 340, 150);
             SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(0, "Start transfering records..."));
 
-            var transfermode = EntityRecord.TransferMode.None;
-            if (preview) transfermode |= EntityRecord.TransferMode.Preview;
-            if (cbCreate.Checked) transfermode |= EntityRecord.TransferMode.Create;
-            if (cbUpdate.Checked) transfermode |= EntityRecord.TransferMode.Update;
-            if (cbDelete.Checked) transfermode |= EntityRecord.TransferMode.Delete;
+            var transfermode = Enumerations.TransferMode.None;
+            if (preview) transfermode |= Enumerations.TransferMode.Preview;
+            if (cbCreate.Checked) transfermode |= Enumerations.TransferMode.Create;
+            if (cbUpdate.Checked) transfermode |= Enumerations.TransferMode.Update;
+            if (cbDelete.Checked) transfermode |= Enumerations.TransferMode.Delete;
 
             var bwTransferData = new BackgroundWorker { WorkerReportsProgress = true };
             bwTransferData.DoWork += (sender, e) =>
@@ -876,10 +897,10 @@ namespace Colso.DataTransporter
             informationPanel = InformationPanel.GetInformationPanel(this, "Transfering records...", 340, 150);
             SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(0, "Start associating records..."));
 
-            var transfermode = RelationRecord.TransferMode.None;
-            if (preview) transfermode |= RelationRecord.TransferMode.Preview;
-            if (cbCreate.Checked) transfermode |= RelationRecord.TransferMode.Create;
-            if (cbDelete.Checked) transfermode |= RelationRecord.TransferMode.Delete;
+            var transfermode = Enumerations.TransferMode.None;
+            if (preview) transfermode |= Enumerations.TransferMode.Preview;
+            if (cbCreate.Checked) transfermode |= Enumerations.TransferMode.Create;
+            if (cbDelete.Checked) transfermode |= Enumerations.TransferMode.Delete;
 
             var bwTransferData = new BackgroundWorker { WorkerReportsProgress = true };
             bwTransferData.DoWork += (sender, e) =>

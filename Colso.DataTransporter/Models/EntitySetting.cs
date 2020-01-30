@@ -9,6 +9,7 @@ namespace Colso.Xrm.DataTransporter.Models
 {
     public class EntitySetting
     {
+        public string LogicalName;
 
         public List<Item<EntityReference, EntityReference>> Mappings;
 

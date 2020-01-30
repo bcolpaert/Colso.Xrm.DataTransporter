@@ -12,19 +12,12 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using static Colso.Xrm.DataTransporter.AppCode.Enumerations;
 
 namespace Colso.DataTransporter.AppCode
 {
     public class RelationRecord
     {
-        public enum TransferMode
-        {
-            None = 0,
-            Preview = 1,
-            Create = 2,
-            Delete = 4
-        }
-
         private EntityCollection sourceRecords;
         private EntityCollection targetRecords;
 

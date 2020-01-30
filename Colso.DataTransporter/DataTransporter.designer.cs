@@ -79,17 +79,19 @@
             this.clEntity2LogicalName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clEntity2IntersectAttribute = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.lblAssFilter = new System.Windows.Forms.Label();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnLoadSettings = new System.Windows.Forms.Button();
             this.btnSaveSettings = new System.Windows.Forms.Button();
             this.tsbCloseThisTab = new System.Windows.Forms.ToolStripButton();
             this.tsbRefreshEntities = new System.Windows.Forms.ToolStripButton();
             this.tsbRefreshAssociations = new System.Windows.Forms.ToolStripButton();
             this.btnPreviewTransfer = new System.Windows.Forms.ToolStripButton();
             this.tsbTransferDashboards = new System.Windows.Forms.ToolStripButton();
+            this.tsbPlaylist = new System.Windows.Forms.ToolStripButton();
             this.tsbDonate = new System.Windows.Forms.ToolStripDropDownButton();
             this.donateInUSDToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.donateInEURToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.donateInGBPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.btnLoadSettings = new System.Windows.Forms.Button();
             this.pnlHeader.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.gbSettings.SuspendLayout();
@@ -343,6 +345,8 @@
             this.btnPreviewTransfer,
             this.tsbTransferDashboards,
             this.toolStripSeparator1,
+            this.tsbPlaylist,
+            this.toolStripSeparator4,
             this.tsbDonate});
             this.tsMain.Location = new System.Drawing.Point(0, 0);
             this.tsMain.Name = "tsMain";
@@ -612,6 +616,22 @@
             this.lblAssFilter.TabIndex = 68;
             this.lblAssFilter.Text = "Filter:";
             // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(6, 25);
+            // 
+            // btnLoadSettings
+            // 
+            this.btnLoadSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLoadSettings.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.load;
+            this.btnLoadSettings.Location = new System.Drawing.Point(430, 17);
+            this.btnLoadSettings.Name = "btnLoadSettings";
+            this.btnLoadSettings.Size = new System.Drawing.Size(23, 23);
+            this.btnLoadSettings.TabIndex = 104;
+            this.btnLoadSettings.UseVisualStyleBackColor = true;
+            this.btnLoadSettings.Click += new System.EventHandler(this.btnLoadSettings_Click);
+            // 
             // btnSaveSettings
             // 
             this.btnSaveSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
@@ -670,6 +690,16 @@
             this.tsbTransferDashboards.Text = "Transfer Data";
             this.tsbTransferDashboards.Click += new System.EventHandler(this.tsbTransferData_Click);
             // 
+            // tsbPlaylist
+            // 
+            this.tsbPlaylist.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.playlist;
+            this.tsbPlaylist.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbPlaylist.Name = "tsbPlaylist";
+            this.tsbPlaylist.Size = new System.Drawing.Size(64, 22);
+            this.tsbPlaylist.Text = "Playlist";
+            this.tsbPlaylist.ToolTipText = "Manage Playlist";
+            this.tsbPlaylist.Click += new System.EventHandler(this.tsbPlaylist_Click);
+            // 
             // tsbDonate
             // 
             this.tsbDonate.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -702,17 +732,6 @@
             this.donateInGBPToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
             this.donateInGBPToolStripMenuItem.Text = "Donate in GBP";
             this.donateInGBPToolStripMenuItem.Click += new System.EventHandler(this.donateInGBPToolStripMenuItem_Click);
-            // 
-            // btnLoadSettings
-            // 
-            this.btnLoadSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnLoadSettings.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.load;
-            this.btnLoadSettings.Location = new System.Drawing.Point(430, 17);
-            this.btnLoadSettings.Name = "btnLoadSettings";
-            this.btnLoadSettings.Size = new System.Drawing.Size(23, 23);
-            this.btnLoadSettings.TabIndex = 104;
-            this.btnLoadSettings.UseVisualStyleBackColor = true;
-            this.btnLoadSettings.Click += new System.EventHandler(this.btnLoadSettings_Click);
             // 
             // DataTransporter
             // 
@@ -809,5 +828,7 @@
         private System.Windows.Forms.CheckBox cbSystemUserEntityReferences;
         private System.Windows.Forms.Button btnSaveSettings;
         private System.Windows.Forms.Button btnLoadSettings;
+        private System.Windows.Forms.ToolStripButton tsbPlaylist;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
     }
 }

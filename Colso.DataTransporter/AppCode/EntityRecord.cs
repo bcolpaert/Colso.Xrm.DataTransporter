@@ -13,20 +13,12 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Linq;
+using static Colso.Xrm.DataTransporter.AppCode.Enumerations;
 
 namespace Colso.DataTransporter.AppCode
 {
     public class EntityRecord
     {
-        public enum TransferMode
-        {
-            None = 0,
-            Preview = 1,
-            Create = 2,
-            Update = 4,
-            Delete = 8
-        }
-
         private EntityCollection sourceRecords;
         private EntityCollection targetRecords;
 

@@ -207,9 +207,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppCode\AutoMappings.cs" />
     <Compile Include="AppCode\RelationRecord.cs" />
     <Compile Include="AppCode\EntityRecord.cs" />
     <Compile Include="AppCode\Enumerations.cs" />
+    <Compile Include="AppCode\XrmConnection.cs" />
     <Compile Include="Forms\PlaylistDialog.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -226,7 +228,7 @@
     <Compile Include="Models\Item.cs" />
     <Compile Include="AppCode\ListViewItemComparer.cs" />
     <Compile Include="Models\Mapping.cs" />
-    <Compile Include="AppCode\MetadataHelper.cs" />
+    <Compile Include="AppCode\XrmConnection.MetadataHelper.cs" />
     <Compile Include="AppCode\CrmExceptionHelper.cs" />
     <Compile Include="AppCode\ProgressEventArgs.cs" />
     <Compile Include="AppCode\SettingFileHandler.cs" />
@@ -315,7 +317,7 @@
   </PropertyGroup>
   <ProjectExtensions>
     <VisualStudio>
-      <UserProperties BuildVersion_ConfigurationName="Release" BuildVersion_BuildVersioningStyle="None.YearStamp.MonthStamp.DayStamp" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_UpdateFileVersion="True" />
+      <UserProperties BuildVersion_UpdateFileVersion="True" BuildVersion_UpdateAssemblyVersion="True" BuildVersion_BuildVersioningStyle="None.YearStamp.MonthStamp.DayStamp" BuildVersion_ConfigurationName="Release" />
     </VisualStudio>
   </ProjectExtensions>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -193,7 +193,7 @@ namespace Colso.DataTransporter
         private void tsbPlaylist_Click(object sender, EventArgs e)
         {
             if (currentplaylist == null) currentplaylist = new Playlist();
-            var mappingDialog = new PlaylistDialog(currentplaylist);
+            var mappingDialog = new PlaylistDialog(this.Service, this.targetService, currentplaylist);
             mappingDialog.ShowDialog(ParentForm);
             currentplaylist = mappingDialog.Playlist;
         }
@@ -483,7 +483,7 @@ namespace Colso.DataTransporter
                 bwFill.DoWork += (sender, e) =>
                 {
                     // Retrieve 
-                    List<EntityMetadata> sourceList = MetadataHelper.RetrieveEntities(this.Service);
+                    List<EntityMetadata> sourceList = this.Service.RetrieveEntities();
 
                     // Prepare list of items
                     Entities.Clear();
@@ -556,7 +556,7 @@ namespace Colso.DataTransporter
                         bwFill.DoWork += (sender, e) =>
                         {
                             // Retrieve 
-                            var entitymeta = MetadataHelper.RetrieveEntity(entity.LogicalName, this.Service);
+                            var entitymeta = this.Service.RetrieveEntity(entity.LogicalName);
                             entityitem.Tag = entitymeta;
 
                             // Get attribute checked settings
@@ -658,7 +658,7 @@ namespace Colso.DataTransporter
                 bwFill.DoWork += (sender, e) =>
                 {
                     // Retrieve 
-                    List<ManyToManyRelationshipMetadata> sourceList = MetadataHelper.RetrieveAssociations(this.Service);
+                    List<ManyToManyRelationshipMetadata> sourceList = this.Service.RetrieveAssociations();
 
                     // Prepare list of items
                     Associations.Clear();
@@ -789,44 +789,22 @@ namespace Colso.DataTransporter
                 if (cbBusinessUnit.Checked)
                 {
                     SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(1, "Retrieving root Business Units..."));
-                    // Add BU mappings
-                    var sourceBU = GetRootBusinessUnit(this.Service);
-                    var targetBU = GetRootBusinessUnit(targetService);
-
-                    if (sourceBU != null && targetBU != null)
-                        autoMappings.Add(new Item<EntityReference, EntityReference>(sourceBU, targetBU));
+                    var bumapping = AutoMappings.GetRootBusinessUnitMapping(this.Service, targetService);
+                    if (bumapping != null) autoMappings.Add(bumapping);
                 }
 
                 if (cbTransactionCurrency.Checked)
                 {
                     SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(1, "Retrieving default transaction currencies..."));
-                    // Add BU mappings
-                    var sourceTC = GetDefaultTransactionCurrency(this.Service);
-                    var targetTC = GetDefaultTransactionCurrency(targetService);
-
-                    if (sourceTC != null && targetTC != null)
-                        autoMappings.Add(new Item<EntityReference, EntityReference>(sourceTC, targetTC));
+                    var tcmapping = AutoMappings.GetDefaultTransactionCurrencyMapping(this.Service, targetService);
+                    if (tcmapping != null) autoMappings.Add(tcmapping);
                 }
 
                 if (cbSystemUserEntityReferences.Checked)
                 {
                     SendMessageToStatusBar?.Invoke(this, new StatusBarMessageEventArgs(1, "Retrieving systemuser mappings..."));
-                    // Add BU mappings
-                    var sourceUsers = GetSystemUsers(this.Service);
-                    var targetUsers = GetSystemUsers(targetService);
-
-                    foreach (var su in sourceUsers)
-                    {
-                        var domainname = su.GetAttributeValue<string>("domainname");
-                        // Make sure we have a domain name
-                        if (!string.IsNullOrEmpty(domainname))
-                        {
-                            var tu = targetUsers.Where(u => u.GetAttributeValue<string>("domainname") == domainname).FirstOrDefault()?.ToEntityReference();
-                            // Do we have a target user?
-                            if (tu != null)
-                                autoMappings.Add(new Item<EntityReference, EntityReference>(su.ToEntityReference(), tu));
-                        }
-                    }
+                    var sumapping = AutoMappings.GetSystemUsersMapping(this.Service, targetService);
+                    if (sumapping != null) autoMappings.AddRange(sumapping);
                 }
 
                 for (int i = 0; i < entities.Count; i++)
@@ -1029,38 +1007,6 @@ namespace Colso.DataTransporter
                     settings[entity.LogicalName].UnmarkedAttributes = attributes;
                 }
             }
-        }
-
-        private EntityReference GetRootBusinessUnit(IOrganizationService service)
-        {
-            var qry = new Microsoft.Xrm.Sdk.Query.QueryExpression("businessunit");
-            qry.Criteria.AddCondition("parentbusinessunitid", Microsoft.Xrm.Sdk.Query.ConditionOperator.Null);
-            var results = service.RetrieveMultiple(qry);
-
-            if (results != null && results.Entities.Count > 0)
-                return results.Entities[0].ToEntityReference();
-
-            return null;
-        }
-
-        private EntityReference GetDefaultTransactionCurrency(IOrganizationService service)
-        {
-            var qry = new Microsoft.Xrm.Sdk.Query.QueryExpression("transactioncurrency");
-            var results = service.RetrieveMultiple(qry);
-
-            if (results != null && results.Entities.Count > 0)
-                return results.Entities[0].ToEntityReference();
-
-            return null;
-        }
-
-        private Entity[] GetSystemUsers(IOrganizationService service)
-        {
-            var qry = new Microsoft.Xrm.Sdk.Query.QueryExpression("systemuser");
-            qry.ColumnSet = new Microsoft.Xrm.Sdk.Query.ColumnSet("domainname");
-            var results = service.RetrieveMultiple(qry);
-
-            return results.Entities.ToArray<Entity>();
         }
 
         private void OpenDonationPage(string currency)

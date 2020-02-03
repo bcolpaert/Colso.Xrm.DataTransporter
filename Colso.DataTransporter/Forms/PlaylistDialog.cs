@@ -94,7 +94,10 @@ namespace Colso.DataTransporter.Forms
 
         private void btnTransfer_Click(object sender, EventArgs e)
         {
-
+            if (sourceService == null || targetService == null)
+                MessageBox.Show("You must select both a source and a target organization", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            else
+                ExecuteTransfer();
         }
 
         private void btnSave_Click(object sender, EventArgs e)

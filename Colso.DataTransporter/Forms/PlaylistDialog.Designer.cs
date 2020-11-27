@@ -46,6 +46,7 @@
             this.btnAddEntitySetting = new System.Windows.Forms.Button();
             this.btnTransfer = new System.Windows.Forms.Button();
             this.PlaylistBindingSource = new System.Windows.Forms.BindingSource(this.components);
+            this.btnCancel = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPlaylist)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PlaylistBindingSource)).BeginInit();
@@ -59,17 +60,19 @@
             this.panel1.Controls.Add(this.label2);
             this.panel1.Controls.Add(this.label1);
             this.panel1.Location = new System.Drawing.Point(0, 0);
+            this.panel1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(774, 60);
+            this.panel1.Size = new System.Drawing.Size(1161, 92);
             this.panel1.TabIndex = 0;
             // 
             // label2
             // 
             this.label2.AutoSize = true;
             this.label2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label2.Location = new System.Drawing.Point(6, 29);
+            this.label2.Location = new System.Drawing.Point(9, 45);
+            this.label2.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(366, 13);
+            this.label2.Size = new System.Drawing.Size(538, 23);
             this.label2.TabIndex = 1;
             this.label2.Text = "The configurations in this list will be executed in the sequenced order";
             // 
@@ -77,18 +80,20 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(4, 4);
+            this.label1.Location = new System.Drawing.Point(6, 6);
+            this.label1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(71, 25);
+            this.label1.Size = new System.Drawing.Size(103, 38);
             this.label1.TabIndex = 0;
             this.label1.Text = "Playlist";
             // 
             // btnClose
             // 
             this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnClose.Location = new System.Drawing.Point(679, 403);
+            this.btnClose.Location = new System.Drawing.Point(1018, 620);
+            this.btnClose.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(75, 25);
+            this.btnClose.Size = new System.Drawing.Size(112, 38);
             this.btnClose.TabIndex = 2;
             this.btnClose.Text = "Close";
             this.btnClose.UseVisualStyleBackColor = true;
@@ -111,11 +116,12 @@
             this.clCreate,
             this.clUpdate,
             this.clDelete});
-            this.dgvPlaylist.Location = new System.Drawing.Point(12, 66);
+            this.dgvPlaylist.Location = new System.Drawing.Point(18, 102);
+            this.dgvPlaylist.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.dgvPlaylist.MultiSelect = false;
             this.dgvPlaylist.Name = "dgvPlaylist";
             this.dgvPlaylist.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvPlaylist.Size = new System.Drawing.Size(742, 331);
+            this.dgvPlaylist.Size = new System.Drawing.Size(1113, 509);
             this.dgvPlaylist.TabIndex = 3;
             this.dgvPlaylist.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvMappings_CellClick);
             this.dgvPlaylist.CellEndEdit += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPlaylist_CellEndEdit);
@@ -179,9 +185,10 @@
             // btnOpen
             // 
             this.btnOpen.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnOpen.Location = new System.Drawing.Point(598, 403);
+            this.btnOpen.Location = new System.Drawing.Point(897, 620);
+            this.btnOpen.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnOpen.Name = "btnOpen";
-            this.btnOpen.Size = new System.Drawing.Size(75, 25);
+            this.btnOpen.Size = new System.Drawing.Size(112, 38);
             this.btnOpen.TabIndex = 6;
             this.btnOpen.Text = "Open";
             this.btnOpen.UseVisualStyleBackColor = true;
@@ -190,9 +197,10 @@
             // btnSave
             // 
             this.btnSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSave.Location = new System.Drawing.Point(517, 403);
+            this.btnSave.Location = new System.Drawing.Point(776, 620);
+            this.btnSave.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(75, 25);
+            this.btnSave.Size = new System.Drawing.Size(112, 38);
             this.btnSave.TabIndex = 7;
             this.btnSave.Text = "Save";
             this.btnSave.UseVisualStyleBackColor = true;
@@ -202,9 +210,10 @@
             // 
             this.btnAddEntitySetting.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnAddEntitySetting.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.load;
-            this.btnAddEntitySetting.Location = new System.Drawing.Point(12, 403);
+            this.btnAddEntitySetting.Location = new System.Drawing.Point(18, 620);
+            this.btnAddEntitySetting.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnAddEntitySetting.Name = "btnAddEntitySetting";
-            this.btnAddEntitySetting.Size = new System.Drawing.Size(115, 25);
+            this.btnAddEntitySetting.Size = new System.Drawing.Size(172, 38);
             this.btnAddEntitySetting.TabIndex = 5;
             this.btnAddEntitySetting.Text = "Add Configuration";
             this.btnAddEntitySetting.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
@@ -215,9 +224,10 @@
             // 
             this.btnTransfer.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnTransfer.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.export;
-            this.btnTransfer.Location = new System.Drawing.Point(133, 403);
+            this.btnTransfer.Location = new System.Drawing.Point(200, 620);
+            this.btnTransfer.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnTransfer.Name = "btnTransfer";
-            this.btnTransfer.Size = new System.Drawing.Size(110, 25);
+            this.btnTransfer.Size = new System.Drawing.Size(165, 38);
             this.btnTransfer.TabIndex = 4;
             this.btnTransfer.Text = "Transfer Data";
             this.btnTransfer.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
@@ -228,11 +238,26 @@
             // 
             this.PlaylistBindingSource.DataSource = typeof(Colso.DataTransporter.Forms.PlaylistDialog);
             // 
+            // btnCancel
+            // 
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnCancel.Location = new System.Drawing.Point(373, 620);
+            this.btnCancel.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.btnCancel.Name = "btnCancel";
+            this.btnCancel.Size = new System.Drawing.Size(165, 38);
+            this.btnCancel.TabIndex = 8;
+            this.btnCancel.Text = "Cancel";
+            this.btnCancel.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
+            this.btnCancel.UseVisualStyleBackColor = true;
+            this.btnCancel.Visible = false;
+            this.btnCancel.Click += new System.EventHandler(this.btnCancel_Click);
+            // 
             // PlaylistDialog
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(766, 438);
+            this.ClientSize = new System.Drawing.Size(1149, 674);
+            this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.btnSave);
             this.Controls.Add(this.btnOpen);
             this.Controls.Add(this.btnAddEntitySetting);
@@ -240,6 +265,7 @@
             this.Controls.Add(this.dgvPlaylist);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.panel1);
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "PlaylistDialog";
@@ -275,5 +301,6 @@
         private System.Windows.Forms.DataGridViewCheckBoxColumn clCreate;
         private System.Windows.Forms.DataGridViewCheckBoxColumn clUpdate;
         private System.Windows.Forms.DataGridViewCheckBoxColumn clDelete;
+        private System.Windows.Forms.Button btnCancel;
     }
 }

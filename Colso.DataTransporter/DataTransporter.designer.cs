@@ -43,6 +43,9 @@
             this.cbTransactionCurrency = new System.Windows.Forms.CheckBox();
             this.cbBusinessUnit = new System.Windows.Forms.CheckBox();
             this.gbSettings = new System.Windows.Forms.GroupBox();
+            this.nudBulkCount = new System.Windows.Forms.NumericUpDown();
+            this.lblBulkCount = new System.Windows.Forms.Label();
+            this.chkUseBulk = new System.Windows.Forms.CheckBox();
             this.cbUpdate = new System.Windows.Forms.CheckBox();
             this.cbDelete = new System.Windows.Forms.CheckBox();
             this.cbCreate = new System.Windows.Forms.CheckBox();
@@ -52,11 +55,23 @@
             this.btnSelectTarget = new System.Windows.Forms.Button();
             this.lbTargetValue = new System.Windows.Forms.Label();
             this.tsMain = new System.Windows.Forms.ToolStrip();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbRefreshEntities = new System.Windows.Forms.ToolStripButton();
+            this.tsbRefreshAssociations = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator3 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnPreviewTransfer = new System.Windows.Forms.ToolStripButton();
+            this.tsbTransferDashboards = new System.Windows.Forms.ToolStripButton();
+            this.tsbCancel = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbPlaylist = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsbDonate = new System.Windows.Forms.ToolStripDropDownButton();
+            this.donateInUSDToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.donateInEURToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.donateInGBPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlBody = new System.Windows.Forms.TableLayoutPanel();
             this.gbAttributes = new System.Windows.Forms.GroupBox();
+            this.btnLoadSettings = new System.Windows.Forms.Button();
+            this.btnSaveSettings = new System.Windows.Forms.Button();
             this.btnEntityMappings = new System.Windows.Forms.Button();
             this.btnFilter = new System.Windows.Forms.Button();
             this.chkAllAttributes = new System.Windows.Forms.CheckBox();
@@ -79,22 +94,10 @@
             this.clEntity2LogicalName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.clEntity2IntersectAttribute = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.lblAssFilter = new System.Windows.Forms.Label();
-            this.toolStripSeparator4 = new System.Windows.Forms.ToolStripSeparator();
-            this.btnLoadSettings = new System.Windows.Forms.Button();
-            this.btnSaveSettings = new System.Windows.Forms.Button();
-            this.tsbCloseThisTab = new System.Windows.Forms.ToolStripButton();
-            this.tsbRefreshEntities = new System.Windows.Forms.ToolStripButton();
-            this.tsbRefreshAssociations = new System.Windows.Forms.ToolStripButton();
-            this.btnPreviewTransfer = new System.Windows.Forms.ToolStripButton();
-            this.tsbTransferDashboards = new System.Windows.Forms.ToolStripButton();
-            this.tsbPlaylist = new System.Windows.Forms.ToolStripButton();
-            this.tsbDonate = new System.Windows.Forms.ToolStripDropDownButton();
-            this.donateInUSDToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.donateInEURToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.donateInGBPToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pnlHeader.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.gbSettings.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudBulkCount)).BeginInit();
             this.gbEnvironments.SuspendLayout();
             this.tsMain.SuspendLayout();
             this.pnlBody.SuspendLayout();
@@ -109,18 +112,20 @@
             // 
             this.txtEntityFilter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtEntityFilter.Location = new System.Drawing.Point(48, 17);
+            this.txtEntityFilter.Location = new System.Drawing.Point(72, 26);
+            this.txtEntityFilter.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtEntityFilter.Name = "txtEntityFilter";
-            this.txtEntityFilter.Size = new System.Drawing.Size(261, 20);
+            this.txtEntityFilter.Size = new System.Drawing.Size(393, 26);
             this.txtEntityFilter.TabIndex = 66;
             this.txtEntityFilter.TextChanged += new System.EventHandler(this.txtEntityFilter_TextChanged);
             // 
             // lblEntityFilter
             // 
             this.lblEntityFilter.AutoSize = true;
-            this.lblEntityFilter.Location = new System.Drawing.Point(6, 22);
+            this.lblEntityFilter.Location = new System.Drawing.Point(9, 34);
+            this.lblEntityFilter.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblEntityFilter.Name = "lblEntityFilter";
-            this.lblEntityFilter.Size = new System.Drawing.Size(32, 13);
+            this.lblEntityFilter.Size = new System.Drawing.Size(48, 20);
             this.lblEntityFilter.TabIndex = 65;
             this.lblEntityFilter.Text = "Filter:";
             // 
@@ -135,10 +140,11 @@
             this.clComment});
             this.lvEntities.FullRowSelect = true;
             this.lvEntities.HideSelection = false;
-            this.lvEntities.Location = new System.Drawing.Point(7, 44);
+            this.lvEntities.Location = new System.Drawing.Point(10, 68);
+            this.lvEntities.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.lvEntities.MultiSelect = false;
             this.lvEntities.Name = "lvEntities";
-            this.lvEntities.Size = new System.Drawing.Size(302, 387);
+            this.lvEntities.Size = new System.Drawing.Size(454, 599);
             this.lvEntities.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvEntities.TabIndex = 64;
             this.lvEntities.UseCompatibleStateImageBehavior = false;
@@ -174,9 +180,10 @@
             this.pnlHeader.Controls.Add(this.gbSettings);
             this.pnlHeader.Controls.Add(this.gbEnvironments);
             this.pnlHeader.Dock = System.Windows.Forms.DockStyle.Top;
-            this.pnlHeader.Location = new System.Drawing.Point(0, 25);
+            this.pnlHeader.Location = new System.Drawing.Point(0, 38);
+            this.pnlHeader.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.pnlHeader.Name = "pnlHeader";
-            this.pnlHeader.Size = new System.Drawing.Size(800, 100);
+            this.pnlHeader.Size = new System.Drawing.Size(1200, 154);
             this.pnlHeader.TabIndex = 103;
             // 
             // groupBox1
@@ -185,9 +192,11 @@
             this.groupBox1.Controls.Add(this.cbSystemUserEntityReferences);
             this.groupBox1.Controls.Add(this.cbTransactionCurrency);
             this.groupBox1.Controls.Add(this.cbBusinessUnit);
-            this.groupBox1.Location = new System.Drawing.Point(599, 4);
+            this.groupBox1.Location = new System.Drawing.Point(898, 6);
+            this.groupBox1.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(194, 93);
+            this.groupBox1.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.groupBox1.Size = new System.Drawing.Size(291, 143);
             this.groupBox1.TabIndex = 103;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Auto-Mappings";
@@ -197,9 +206,10 @@
             this.cbSystemUserEntityReferences.AutoSize = true;
             this.cbSystemUserEntityReferences.Checked = true;
             this.cbSystemUserEntityReferences.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbSystemUserEntityReferences.Location = new System.Drawing.Point(6, 66);
+            this.cbSystemUserEntityReferences.Location = new System.Drawing.Point(9, 102);
+            this.cbSystemUserEntityReferences.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cbSystemUserEntityReferences.Name = "cbSystemUserEntityReferences";
-            this.cbSystemUserEntityReferences.Size = new System.Drawing.Size(172, 17);
+            this.cbSystemUserEntityReferences.Size = new System.Drawing.Size(257, 24);
             this.cbSystemUserEntityReferences.TabIndex = 3;
             this.cbSystemUserEntityReferences.Text = "System User Entity References";
             this.cbSystemUserEntityReferences.UseVisualStyleBackColor = true;
@@ -209,9 +219,10 @@
             this.cbTransactionCurrency.AutoSize = true;
             this.cbTransactionCurrency.Checked = true;
             this.cbTransactionCurrency.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbTransactionCurrency.Location = new System.Drawing.Point(6, 44);
+            this.cbTransactionCurrency.Location = new System.Drawing.Point(9, 68);
+            this.cbTransactionCurrency.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cbTransactionCurrency.Name = "cbTransactionCurrency";
-            this.cbTransactionCurrency.Size = new System.Drawing.Size(164, 17);
+            this.cbTransactionCurrency.Size = new System.Drawing.Size(241, 24);
             this.cbTransactionCurrency.TabIndex = 2;
             this.cbTransactionCurrency.Text = "Default Transaction Currency";
             this.cbTransactionCurrency.UseVisualStyleBackColor = true;
@@ -221,9 +232,10 @@
             this.cbBusinessUnit.AutoSize = true;
             this.cbBusinessUnit.Checked = true;
             this.cbBusinessUnit.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbBusinessUnit.Location = new System.Drawing.Point(6, 21);
+            this.cbBusinessUnit.Location = new System.Drawing.Point(9, 32);
+            this.cbBusinessUnit.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cbBusinessUnit.Name = "cbBusinessUnit";
-            this.cbBusinessUnit.Size = new System.Drawing.Size(116, 17);
+            this.cbBusinessUnit.Size = new System.Drawing.Size(172, 24);
             this.cbBusinessUnit.TabIndex = 0;
             this.cbBusinessUnit.Text = "Root Business Unit";
             this.cbBusinessUnit.UseVisualStyleBackColor = true;
@@ -231,22 +243,79 @@
             // gbSettings
             // 
             this.gbSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.gbSettings.Controls.Add(this.nudBulkCount);
+            this.gbSettings.Controls.Add(this.lblBulkCount);
+            this.gbSettings.Controls.Add(this.chkUseBulk);
             this.gbSettings.Controls.Add(this.cbUpdate);
             this.gbSettings.Controls.Add(this.cbDelete);
             this.gbSettings.Controls.Add(this.cbCreate);
-            this.gbSettings.Location = new System.Drawing.Point(516, 3);
+            this.gbSettings.Location = new System.Drawing.Point(627, 5);
+            this.gbSettings.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.gbSettings.Name = "gbSettings";
-            this.gbSettings.Size = new System.Drawing.Size(77, 94);
+            this.gbSettings.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.gbSettings.Size = new System.Drawing.Size(263, 145);
             this.gbSettings.TabIndex = 102;
             this.gbSettings.TabStop = false;
             this.gbSettings.Text = "Settings";
             // 
+            // nudBulkCount
+            // 
+            this.nudBulkCount.Enabled = false;
+            this.nudBulkCount.Increment = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this.nudBulkCount.Location = new System.Drawing.Point(114, 101);
+            this.nudBulkCount.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            this.nudBulkCount.Minimum = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            this.nudBulkCount.Name = "nudBulkCount";
+            this.nudBulkCount.Size = new System.Drawing.Size(141, 26);
+            this.nudBulkCount.TabIndex = 5;
+            this.nudBulkCount.Value = new decimal(new int[] {
+            100,
+            0,
+            0,
+            0});
+            // 
+            // lblBulkCount
+            // 
+            this.lblBulkCount.AutoSize = true;
+            this.lblBulkCount.Location = new System.Drawing.Point(110, 69);
+            this.lblBulkCount.Name = "lblBulkCount";
+            this.lblBulkCount.Size = new System.Drawing.Size(84, 20);
+            this.lblBulkCount.TabIndex = 4;
+            this.lblBulkCount.Text = "Bulk count";
+            // 
+            // chkUseBulk
+            // 
+            this.chkUseBulk.AutoSize = true;
+            this.chkUseBulk.Checked = true;
+            this.chkUseBulk.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkUseBulk.Location = new System.Drawing.Point(114, 32);
+            this.chkUseBulk.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.chkUseBulk.Name = "chkUseBulk";
+            this.chkUseBulk.Size = new System.Drawing.Size(141, 24);
+            this.chkUseBulk.TabIndex = 3;
+            this.chkUseBulk.Text = "Process in bulk";
+            this.chkUseBulk.UseVisualStyleBackColor = true;
+            this.chkUseBulk.CheckedChanged += new System.EventHandler(this.chkUseBulk_CheckedChanged);
+            // 
             // cbUpdate
             // 
             this.cbUpdate.AutoSize = true;
-            this.cbUpdate.Location = new System.Drawing.Point(6, 44);
+            this.cbUpdate.Location = new System.Drawing.Point(9, 68);
+            this.cbUpdate.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cbUpdate.Name = "cbUpdate";
-            this.cbUpdate.Size = new System.Drawing.Size(61, 17);
+            this.cbUpdate.Size = new System.Drawing.Size(88, 24);
             this.cbUpdate.TabIndex = 2;
             this.cbUpdate.Text = "Update";
             this.cbUpdate.UseVisualStyleBackColor = true;
@@ -254,9 +323,10 @@
             // cbDelete
             // 
             this.cbDelete.AutoSize = true;
-            this.cbDelete.Location = new System.Drawing.Point(6, 67);
+            this.cbDelete.Location = new System.Drawing.Point(9, 103);
+            this.cbDelete.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cbDelete.Name = "cbDelete";
-            this.cbDelete.Size = new System.Drawing.Size(57, 17);
+            this.cbDelete.Size = new System.Drawing.Size(82, 24);
             this.cbDelete.TabIndex = 1;
             this.cbDelete.Text = "Delete";
             this.cbDelete.UseVisualStyleBackColor = true;
@@ -266,9 +336,10 @@
             this.cbCreate.AutoSize = true;
             this.cbCreate.Checked = true;
             this.cbCreate.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbCreate.Location = new System.Drawing.Point(6, 21);
+            this.cbCreate.Location = new System.Drawing.Point(9, 32);
+            this.cbCreate.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.cbCreate.Name = "cbCreate";
-            this.cbCreate.Size = new System.Drawing.Size(57, 17);
+            this.cbCreate.Size = new System.Drawing.Size(83, 24);
             this.cbCreate.TabIndex = 0;
             this.cbCreate.Text = "Create";
             this.cbCreate.UseVisualStyleBackColor = true;
@@ -281,9 +352,11 @@
             this.gbEnvironments.Controls.Add(this.lblSource);
             this.gbEnvironments.Controls.Add(this.btnSelectTarget);
             this.gbEnvironments.Controls.Add(this.lbTargetValue);
-            this.gbEnvironments.Location = new System.Drawing.Point(3, 4);
+            this.gbEnvironments.Location = new System.Drawing.Point(4, 6);
+            this.gbEnvironments.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.gbEnvironments.Name = "gbEnvironments";
-            this.gbEnvironments.Size = new System.Drawing.Size(507, 93);
+            this.gbEnvironments.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.gbEnvironments.Size = new System.Drawing.Size(615, 143);
             this.gbEnvironments.TabIndex = 101;
             this.gbEnvironments.TabStop = false;
             this.gbEnvironments.Text = "Environments";
@@ -295,26 +368,29 @@
             this.lbSourceValue.AutoSize = true;
             this.lbSourceValue.Font = new System.Drawing.Font("Segoe UI", 8.25F);
             this.lbSourceValue.ForeColor = System.Drawing.Color.Red;
-            this.lbSourceValue.Location = new System.Drawing.Point(114, 24);
+            this.lbSourceValue.Location = new System.Drawing.Point(171, 37);
+            this.lbSourceValue.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lbSourceValue.Name = "lbSourceValue";
-            this.lbSourceValue.Size = new System.Drawing.Size(64, 13);
+            this.lbSourceValue.Size = new System.Drawing.Size(94, 23);
             this.lbSourceValue.TabIndex = 97;
             this.lbSourceValue.Text = "Unselected";
             // 
             // lblSource
             // 
             this.lblSource.AutoSize = true;
-            this.lblSource.Location = new System.Drawing.Point(6, 24);
+            this.lblSource.Location = new System.Drawing.Point(9, 37);
+            this.lblSource.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblSource.Name = "lblSource";
-            this.lblSource.Size = new System.Drawing.Size(41, 13);
+            this.lblSource.Size = new System.Drawing.Size(60, 20);
             this.lblSource.TabIndex = 100;
             this.lblSource.Text = "Source";
             // 
             // btnSelectTarget
             // 
-            this.btnSelectTarget.Location = new System.Drawing.Point(6, 40);
+            this.btnSelectTarget.Location = new System.Drawing.Point(9, 62);
+            this.btnSelectTarget.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnSelectTarget.Name = "btnSelectTarget";
-            this.btnSelectTarget.Size = new System.Drawing.Size(85, 23);
+            this.btnSelectTarget.Size = new System.Drawing.Size(128, 35);
             this.btnSelectTarget.TabIndex = 99;
             this.btnSelectTarget.Text = "Select target";
             this.btnSelectTarget.UseVisualStyleBackColor = true;
@@ -327,9 +403,10 @@
             this.lbTargetValue.AutoSize = true;
             this.lbTargetValue.Font = new System.Drawing.Font("Segoe UI", 8.25F);
             this.lbTargetValue.ForeColor = System.Drawing.Color.Red;
-            this.lbTargetValue.Location = new System.Drawing.Point(114, 45);
+            this.lbTargetValue.Location = new System.Drawing.Point(171, 69);
+            this.lbTargetValue.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lbTargetValue.Name = "lbTargetValue";
-            this.lbTargetValue.Size = new System.Drawing.Size(64, 13);
+            this.lbTargetValue.Size = new System.Drawing.Size(94, 23);
             this.lbTargetValue.TabIndex = 98;
             this.lbTargetValue.Text = "Unselected";
             // 
@@ -337,37 +414,128 @@
             // 
             this.tsMain.AutoSize = false;
             this.tsMain.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsbCloseThisTab,
-            this.toolStripSeparator2,
             this.tsbRefreshEntities,
             this.tsbRefreshAssociations,
             this.toolStripSeparator3,
             this.btnPreviewTransfer,
             this.tsbTransferDashboards,
+            this.tsbCancel,
             this.toolStripSeparator1,
             this.tsbPlaylist,
             this.toolStripSeparator4,
             this.tsbDonate});
             this.tsMain.Location = new System.Drawing.Point(0, 0);
             this.tsMain.Name = "tsMain";
-            this.tsMain.Size = new System.Drawing.Size(800, 25);
+            this.tsMain.Padding = new System.Windows.Forms.Padding(0, 0, 2, 0);
+            this.tsMain.Size = new System.Drawing.Size(1200, 38);
             this.tsMain.TabIndex = 90;
             this.tsMain.Text = "toolStrip1";
             // 
-            // toolStripSeparator2
+            // tsbRefreshEntities
             // 
-            this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(6, 25);
+            this.tsbRefreshEntities.Font = new System.Drawing.Font("Segoe UI", 8.25F);
+            this.tsbRefreshEntities.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.entities;
+            this.tsbRefreshEntities.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbRefreshEntities.Name = "tsbRefreshEntities";
+            this.tsbRefreshEntities.Size = new System.Drawing.Size(154, 35);
+            this.tsbRefreshEntities.Text = "Refresh Entities";
+            this.tsbRefreshEntities.Click += new System.EventHandler(this.tsbRefreshEntities_Click);
+            // 
+            // tsbRefreshAssociations
+            // 
+            this.tsbRefreshAssociations.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.relation;
+            this.tsbRefreshAssociations.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbRefreshAssociations.Name = "tsbRefreshAssociations";
+            this.tsbRefreshAssociations.Size = new System.Drawing.Size(202, 35);
+            this.tsbRefreshAssociations.Text = "Refresh Associations";
+            this.tsbRefreshAssociations.Click += new System.EventHandler(this.tsbRefreshAssociations_Click);
             // 
             // toolStripSeparator3
             // 
             this.toolStripSeparator3.Name = "toolStripSeparator3";
-            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 25);
+            this.toolStripSeparator3.Size = new System.Drawing.Size(6, 38);
+            // 
+            // btnPreviewTransfer
+            // 
+            this.btnPreviewTransfer.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.preview;
+            this.btnPreviewTransfer.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnPreviewTransfer.Name = "btnPreviewTransfer";
+            this.btnPreviewTransfer.Size = new System.Drawing.Size(100, 35);
+            this.btnPreviewTransfer.Text = "Preview";
+            this.btnPreviewTransfer.Click += new System.EventHandler(this.btnPreviewTransfer_Click);
+            // 
+            // tsbTransferDashboards
+            // 
+            this.tsbTransferDashboards.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.export;
+            this.tsbTransferDashboards.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbTransferDashboards.Name = "tsbTransferDashboards";
+            this.tsbTransferDashboards.Size = new System.Drawing.Size(143, 35);
+            this.tsbTransferDashboards.Text = "Transfer Data";
+            this.tsbTransferDashboards.Click += new System.EventHandler(this.tsbTransferData_Click);
+            // 
+            // tsbCancel
+            // 
+            this.tsbCancel.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Text;
+            this.tsbCancel.Image = ((System.Drawing.Image)(resources.GetObject("tsbCancel.Image")));
+            this.tsbCancel.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbCancel.Name = "tsbCancel";
+            this.tsbCancel.Size = new System.Drawing.Size(67, 35);
+            this.tsbCancel.Text = "Cancel";
+            this.tsbCancel.Visible = false;
+            this.tsbCancel.Click += new System.EventHandler(this.tsbCancel_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
-            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 25);
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 38);
+            // 
+            // tsbPlaylist
+            // 
+            this.tsbPlaylist.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.playlist;
+            this.tsbPlaylist.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbPlaylist.Name = "tsbPlaylist";
+            this.tsbPlaylist.Size = new System.Drawing.Size(94, 35);
+            this.tsbPlaylist.Text = "Playlist";
+            this.tsbPlaylist.ToolTipText = "Manage Playlist";
+            this.tsbPlaylist.Click += new System.EventHandler(this.tsbPlaylist_Click);
+            // 
+            // toolStripSeparator4
+            // 
+            this.toolStripSeparator4.Name = "toolStripSeparator4";
+            this.toolStripSeparator4.Size = new System.Drawing.Size(6, 38);
+            // 
+            // tsbDonate
+            // 
+            this.tsbDonate.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.donateInUSDToolStripMenuItem,
+            this.donateInEURToolStripMenuItem,
+            this.donateInGBPToolStripMenuItem});
+            this.tsbDonate.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.paypal;
+            this.tsbDonate.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.tsbDonate.Name = "tsbDonate";
+            this.tsbDonate.Size = new System.Drawing.Size(112, 35);
+            this.tsbDonate.Text = "Donate";
+            // 
+            // donateInUSDToolStripMenuItem
+            // 
+            this.donateInUSDToolStripMenuItem.Name = "donateInUSDToolStripMenuItem";
+            this.donateInUSDToolStripMenuItem.Size = new System.Drawing.Size(213, 30);
+            this.donateInUSDToolStripMenuItem.Text = "Donate in USD";
+            this.donateInUSDToolStripMenuItem.Click += new System.EventHandler(this.donateInUSDToolStripMenuItem_Click);
+            // 
+            // donateInEURToolStripMenuItem
+            // 
+            this.donateInEURToolStripMenuItem.Name = "donateInEURToolStripMenuItem";
+            this.donateInEURToolStripMenuItem.Size = new System.Drawing.Size(213, 30);
+            this.donateInEURToolStripMenuItem.Text = "Donate in EUR";
+            this.donateInEURToolStripMenuItem.Click += new System.EventHandler(this.donateInEURToolStripMenuItem_Click);
+            // 
+            // donateInGBPToolStripMenuItem
+            // 
+            this.donateInGBPToolStripMenuItem.Name = "donateInGBPToolStripMenuItem";
+            this.donateInGBPToolStripMenuItem.Size = new System.Drawing.Size(213, 30);
+            this.donateInGBPToolStripMenuItem.Text = "Donate in GBP";
+            this.donateInGBPToolStripMenuItem.Click += new System.EventHandler(this.donateInGBPToolStripMenuItem_Click);
             // 
             // pnlBody
             // 
@@ -377,12 +545,13 @@
             this.pnlBody.Controls.Add(this.gbAttributes, 1, 0);
             this.pnlBody.Controls.Add(this.gbEntities, 0, 0);
             this.pnlBody.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlBody.Location = new System.Drawing.Point(3, 3);
+            this.pnlBody.Location = new System.Drawing.Point(4, 5);
+            this.pnlBody.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.pnlBody.Name = "pnlBody";
             this.pnlBody.RowCount = 1;
             this.pnlBody.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.pnlBody.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
-            this.pnlBody.Size = new System.Drawing.Size(786, 443);
+            this.pnlBody.Size = new System.Drawing.Size(1184, 688);
             this.pnlBody.TabIndex = 104;
             // 
             // gbAttributes
@@ -395,20 +564,47 @@
             this.gbAttributes.Controls.Add(this.lvAttributes);
             this.gbAttributes.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gbAttributes.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.gbAttributes.Location = new System.Drawing.Point(324, 3);
+            this.gbAttributes.Location = new System.Drawing.Point(487, 5);
+            this.gbAttributes.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.gbAttributes.Name = "gbAttributes";
-            this.gbAttributes.Size = new System.Drawing.Size(459, 437);
+            this.gbAttributes.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.gbAttributes.Size = new System.Drawing.Size(693, 678);
             this.gbAttributes.TabIndex = 92;
             this.gbAttributes.TabStop = false;
             this.gbAttributes.Text = "Available attributes";
+            // 
+            // btnLoadSettings
+            // 
+            this.btnLoadSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnLoadSettings.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.load;
+            this.btnLoadSettings.Location = new System.Drawing.Point(650, 26);
+            this.btnLoadSettings.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.btnLoadSettings.Name = "btnLoadSettings";
+            this.btnLoadSettings.Size = new System.Drawing.Size(34, 35);
+            this.btnLoadSettings.TabIndex = 104;
+            this.btnLoadSettings.UseVisualStyleBackColor = true;
+            this.btnLoadSettings.Click += new System.EventHandler(this.btnLoadSettings_Click);
+            // 
+            // btnSaveSettings
+            // 
+            this.btnSaveSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnSaveSettings.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.save;
+            this.btnSaveSettings.Location = new System.Drawing.Point(607, 26);
+            this.btnSaveSettings.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.btnSaveSettings.Name = "btnSaveSettings";
+            this.btnSaveSettings.Size = new System.Drawing.Size(34, 35);
+            this.btnSaveSettings.TabIndex = 103;
+            this.btnSaveSettings.UseVisualStyleBackColor = true;
+            this.btnSaveSettings.Click += new System.EventHandler(this.btnSaveSettings_Click);
             // 
             // btnEntityMappings
             // 
             this.btnEntityMappings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnEntityMappings.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnEntityMappings.Location = new System.Drawing.Point(264, 17);
+            this.btnEntityMappings.Location = new System.Drawing.Point(401, 26);
+            this.btnEntityMappings.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnEntityMappings.Name = "btnEntityMappings";
-            this.btnEntityMappings.Size = new System.Drawing.Size(72, 23);
+            this.btnEntityMappings.Size = new System.Drawing.Size(108, 35);
             this.btnEntityMappings.TabIndex = 102;
             this.btnEntityMappings.Text = "Mappings";
             this.btnEntityMappings.UseVisualStyleBackColor = true;
@@ -417,9 +613,10 @@
             // btnFilter
             // 
             this.btnFilter.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnFilter.Location = new System.Drawing.Point(342, 17);
+            this.btnFilter.Location = new System.Drawing.Point(518, 26);
+            this.btnFilter.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnFilter.Name = "btnFilter";
-            this.btnFilter.Size = new System.Drawing.Size(53, 23);
+            this.btnFilter.Size = new System.Drawing.Size(80, 35);
             this.btnFilter.TabIndex = 101;
             this.btnFilter.Text = "Filters";
             this.btnFilter.UseVisualStyleBackColor = true;
@@ -430,9 +627,10 @@
             this.chkAllAttributes.AutoSize = true;
             this.chkAllAttributes.Checked = true;
             this.chkAllAttributes.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkAllAttributes.Location = new System.Drawing.Point(6, 21);
+            this.chkAllAttributes.Location = new System.Drawing.Point(9, 32);
+            this.chkAllAttributes.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.chkAllAttributes.Name = "chkAllAttributes";
-            this.chkAllAttributes.Size = new System.Drawing.Size(120, 17);
+            this.chkAllAttributes.Size = new System.Drawing.Size(177, 27);
             this.chkAllAttributes.TabIndex = 3;
             this.chkAllAttributes.Text = "Select/Unselect All";
             this.chkAllAttributes.UseVisualStyleBackColor = true;
@@ -451,9 +649,10 @@
             this.clAttComment});
             this.lvAttributes.FullRowSelect = true;
             this.lvAttributes.HideSelection = false;
-            this.lvAttributes.Location = new System.Drawing.Point(6, 44);
+            this.lvAttributes.Location = new System.Drawing.Point(9, 68);
+            this.lvAttributes.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.lvAttributes.Name = "lvAttributes";
-            this.lvAttributes.Size = new System.Drawing.Size(447, 387);
+            this.lvAttributes.Size = new System.Drawing.Size(673, 599);
             this.lvAttributes.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvAttributes.TabIndex = 64;
             this.lvAttributes.UseCompatibleStateImageBehavior = false;
@@ -486,9 +685,11 @@
             this.gbEntities.Controls.Add(this.lblEntityFilter);
             this.gbEntities.Controls.Add(this.lvEntities);
             this.gbEntities.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.gbEntities.Location = new System.Drawing.Point(3, 3);
+            this.gbEntities.Location = new System.Drawing.Point(4, 5);
+            this.gbEntities.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.gbEntities.Name = "gbEntities";
-            this.gbEntities.Size = new System.Drawing.Size(315, 437);
+            this.gbEntities.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.gbEntities.Size = new System.Drawing.Size(475, 678);
             this.gbEntities.TabIndex = 93;
             this.gbEntities.TabStop = false;
             this.gbEntities.Text = "Available Entities";
@@ -498,20 +699,22 @@
             this.tabSourceObjects.Controls.Add(this.tabEntities);
             this.tabSourceObjects.Controls.Add(this.tabAssociations);
             this.tabSourceObjects.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabSourceObjects.Location = new System.Drawing.Point(0, 125);
+            this.tabSourceObjects.Location = new System.Drawing.Point(0, 192);
+            this.tabSourceObjects.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.tabSourceObjects.Name = "tabSourceObjects";
             this.tabSourceObjects.SelectedIndex = 0;
-            this.tabSourceObjects.Size = new System.Drawing.Size(800, 475);
+            this.tabSourceObjects.Size = new System.Drawing.Size(1200, 731);
             this.tabSourceObjects.TabIndex = 67;
             this.tabSourceObjects.SelectedIndexChanged += new System.EventHandler(this.tabSourceObjects_SelectedIndexChanged);
             // 
             // tabEntities
             // 
             this.tabEntities.Controls.Add(this.pnlBody);
-            this.tabEntities.Location = new System.Drawing.Point(4, 22);
+            this.tabEntities.Location = new System.Drawing.Point(4, 29);
+            this.tabEntities.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.tabEntities.Name = "tabEntities";
-            this.tabEntities.Padding = new System.Windows.Forms.Padding(3);
-            this.tabEntities.Size = new System.Drawing.Size(792, 449);
+            this.tabEntities.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.tabEntities.Size = new System.Drawing.Size(1192, 698);
             this.tabEntities.TabIndex = 0;
             this.tabEntities.Text = "Entities";
             this.tabEntities.UseVisualStyleBackColor = true;
@@ -522,10 +725,11 @@
             this.tabAssociations.Controls.Add(this.txtAssFilter);
             this.tabAssociations.Controls.Add(this.lvAssociations);
             this.tabAssociations.Controls.Add(this.lblAssFilter);
-            this.tabAssociations.Location = new System.Drawing.Point(4, 22);
+            this.tabAssociations.Location = new System.Drawing.Point(4, 29);
+            this.tabAssociations.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.tabAssociations.Name = "tabAssociations";
-            this.tabAssociations.Padding = new System.Windows.Forms.Padding(3);
-            this.tabAssociations.Size = new System.Drawing.Size(792, 449);
+            this.tabAssociations.Padding = new System.Windows.Forms.Padding(4, 5, 4, 5);
+            this.tabAssociations.Size = new System.Drawing.Size(1192, 698);
             this.tabAssociations.TabIndex = 1;
             this.tabAssociations.Text = "Associations";
             this.tabAssociations.UseVisualStyleBackColor = true;
@@ -534,9 +738,10 @@
             // 
             this.btnAssMappings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnAssMappings.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnAssMappings.Location = new System.Drawing.Point(714, 4);
+            this.btnAssMappings.Location = new System.Drawing.Point(1071, 6);
+            this.btnAssMappings.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnAssMappings.Name = "btnAssMappings";
-            this.btnAssMappings.Size = new System.Drawing.Size(72, 23);
+            this.btnAssMappings.Size = new System.Drawing.Size(108, 35);
             this.btnAssMappings.TabIndex = 103;
             this.btnAssMappings.Text = "Mappings";
             this.btnAssMappings.UseVisualStyleBackColor = true;
@@ -546,9 +751,10 @@
             // 
             this.txtAssFilter.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.txtAssFilter.Location = new System.Drawing.Point(47, 6);
+            this.txtAssFilter.Location = new System.Drawing.Point(70, 9);
+            this.txtAssFilter.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.txtAssFilter.Name = "txtAssFilter";
-            this.txtAssFilter.Size = new System.Drawing.Size(661, 20);
+            this.txtAssFilter.Size = new System.Drawing.Size(990, 26);
             this.txtAssFilter.TabIndex = 69;
             this.txtAssFilter.TextChanged += new System.EventHandler(this.txtAssFilter_TextChanged);
             // 
@@ -566,10 +772,11 @@
             this.clEntity2IntersectAttribute});
             this.lvAssociations.FullRowSelect = true;
             this.lvAssociations.HideSelection = false;
-            this.lvAssociations.Location = new System.Drawing.Point(6, 34);
+            this.lvAssociations.Location = new System.Drawing.Point(9, 52);
+            this.lvAssociations.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.lvAssociations.MultiSelect = false;
             this.lvAssociations.Name = "lvAssociations";
-            this.lvAssociations.Size = new System.Drawing.Size(780, 409);
+            this.lvAssociations.Size = new System.Drawing.Size(1168, 627);
             this.lvAssociations.Sorting = System.Windows.Forms.SortOrder.Ascending;
             this.lvAssociations.TabIndex = 67;
             this.lvAssociations.UseCompatibleStateImageBehavior = false;
@@ -610,146 +817,30 @@
             // lblAssFilter
             // 
             this.lblAssFilter.AutoSize = true;
-            this.lblAssFilter.Location = new System.Drawing.Point(5, 11);
+            this.lblAssFilter.Location = new System.Drawing.Point(8, 17);
+            this.lblAssFilter.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblAssFilter.Name = "lblAssFilter";
-            this.lblAssFilter.Size = new System.Drawing.Size(32, 13);
+            this.lblAssFilter.Size = new System.Drawing.Size(48, 20);
             this.lblAssFilter.TabIndex = 68;
             this.lblAssFilter.Text = "Filter:";
             // 
-            // toolStripSeparator4
-            // 
-            this.toolStripSeparator4.Name = "toolStripSeparator4";
-            this.toolStripSeparator4.Size = new System.Drawing.Size(6, 25);
-            // 
-            // btnLoadSettings
-            // 
-            this.btnLoadSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnLoadSettings.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.load;
-            this.btnLoadSettings.Location = new System.Drawing.Point(430, 17);
-            this.btnLoadSettings.Name = "btnLoadSettings";
-            this.btnLoadSettings.Size = new System.Drawing.Size(23, 23);
-            this.btnLoadSettings.TabIndex = 104;
-            this.btnLoadSettings.UseVisualStyleBackColor = true;
-            this.btnLoadSettings.Click += new System.EventHandler(this.btnLoadSettings_Click);
-            // 
-            // btnSaveSettings
-            // 
-            this.btnSaveSettings.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnSaveSettings.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.save;
-            this.btnSaveSettings.Location = new System.Drawing.Point(401, 17);
-            this.btnSaveSettings.Name = "btnSaveSettings";
-            this.btnSaveSettings.Size = new System.Drawing.Size(23, 23);
-            this.btnSaveSettings.TabIndex = 103;
-            this.btnSaveSettings.UseVisualStyleBackColor = true;
-            this.btnSaveSettings.Click += new System.EventHandler(this.btnSaveSettings_Click);
-            // 
-            // tsbCloseThisTab
-            // 
-            this.tsbCloseThisTab.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.tsbCloseThisTab.Image = ((System.Drawing.Image)(resources.GetObject("tsbCloseThisTab.Image")));
-            this.tsbCloseThisTab.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbCloseThisTab.Name = "tsbCloseThisTab";
-            this.tsbCloseThisTab.Size = new System.Drawing.Size(55, 22);
-            this.tsbCloseThisTab.Text = "Close";
-            this.tsbCloseThisTab.Click += new System.EventHandler(this.tsbCloseThisTab_Click);
-            // 
-            // tsbRefreshEntities
-            // 
-            this.tsbRefreshEntities.Font = new System.Drawing.Font("Segoe UI", 8.25F);
-            this.tsbRefreshEntities.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.entities;
-            this.tsbRefreshEntities.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbRefreshEntities.Name = "tsbRefreshEntities";
-            this.tsbRefreshEntities.Size = new System.Drawing.Size(107, 22);
-            this.tsbRefreshEntities.Text = "Refresh Entities";
-            this.tsbRefreshEntities.Click += new System.EventHandler(this.tsbRefreshEntities_Click);
-            // 
-            // tsbRefreshAssociations
-            // 
-            this.tsbRefreshAssociations.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.relation;
-            this.tsbRefreshAssociations.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbRefreshAssociations.Name = "tsbRefreshAssociations";
-            this.tsbRefreshAssociations.Size = new System.Drawing.Size(135, 22);
-            this.tsbRefreshAssociations.Text = "Refresh Associations";
-            this.tsbRefreshAssociations.Click += new System.EventHandler(this.tsbRefreshAssociations_Click);
-            // 
-            // btnPreviewTransfer
-            // 
-            this.btnPreviewTransfer.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.preview;
-            this.btnPreviewTransfer.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.btnPreviewTransfer.Name = "btnPreviewTransfer";
-            this.btnPreviewTransfer.Size = new System.Drawing.Size(68, 22);
-            this.btnPreviewTransfer.Text = "Preview";
-            this.btnPreviewTransfer.Click += new System.EventHandler(this.btnPreviewTransfer_Click);
-            // 
-            // tsbTransferDashboards
-            // 
-            this.tsbTransferDashboards.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.export;
-            this.tsbTransferDashboards.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbTransferDashboards.Name = "tsbTransferDashboards";
-            this.tsbTransferDashboards.Size = new System.Drawing.Size(96, 22);
-            this.tsbTransferDashboards.Text = "Transfer Data";
-            this.tsbTransferDashboards.Click += new System.EventHandler(this.tsbTransferData_Click);
-            // 
-            // tsbPlaylist
-            // 
-            this.tsbPlaylist.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.playlist;
-            this.tsbPlaylist.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbPlaylist.Name = "tsbPlaylist";
-            this.tsbPlaylist.Size = new System.Drawing.Size(64, 22);
-            this.tsbPlaylist.Text = "Playlist";
-            this.tsbPlaylist.ToolTipText = "Manage Playlist";
-            this.tsbPlaylist.Click += new System.EventHandler(this.tsbPlaylist_Click);
-            // 
-            // tsbDonate
-            // 
-            this.tsbDonate.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.donateInUSDToolStripMenuItem,
-            this.donateInEURToolStripMenuItem,
-            this.donateInGBPToolStripMenuItem});
-            this.tsbDonate.Image = global::Colso.Xrm.DataTransporter.Properties.Resources.paypal;
-            this.tsbDonate.ImageTransparentColor = System.Drawing.Color.Magenta;
-            this.tsbDonate.Name = "tsbDonate";
-            this.tsbDonate.Size = new System.Drawing.Size(74, 22);
-            this.tsbDonate.Text = "Donate";
-            // 
-            // donateInUSDToolStripMenuItem
-            // 
-            this.donateInUSDToolStripMenuItem.Name = "donateInUSDToolStripMenuItem";
-            this.donateInUSDToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
-            this.donateInUSDToolStripMenuItem.Text = "Donate in USD";
-            this.donateInUSDToolStripMenuItem.Click += new System.EventHandler(this.donateInUSDToolStripMenuItem_Click);
-            // 
-            // donateInEURToolStripMenuItem
-            // 
-            this.donateInEURToolStripMenuItem.Name = "donateInEURToolStripMenuItem";
-            this.donateInEURToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
-            this.donateInEURToolStripMenuItem.Text = "Donate in EUR";
-            this.donateInEURToolStripMenuItem.Click += new System.EventHandler(this.donateInEURToolStripMenuItem_Click);
-            // 
-            // donateInGBPToolStripMenuItem
-            // 
-            this.donateInGBPToolStripMenuItem.Name = "donateInGBPToolStripMenuItem";
-            this.donateInGBPToolStripMenuItem.Size = new System.Drawing.Size(150, 22);
-            this.donateInGBPToolStripMenuItem.Text = "Donate in GBP";
-            this.donateInGBPToolStripMenuItem.Click += new System.EventHandler(this.donateInGBPToolStripMenuItem_Click);
-            // 
             // DataTransporter
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Window;
             this.Controls.Add(this.tabSourceObjects);
             this.Controls.Add(this.pnlHeader);
             this.Controls.Add(this.tsMain);
+            this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.Name = "DataTransporter";
-            this.Size = new System.Drawing.Size(800, 600);
-            this.OnCloseTool += new System.EventHandler(this.DataTransporter_OnCloseTool);
-            this.ConnectionUpdated += new XrmToolBox.Extensibility.PluginControlBase.ConnectionUpdatedHandler(this.DataTransporter_ConnectionUpdated);
+            this.Size = new System.Drawing.Size(1200, 923);
             this.pnlHeader.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.gbSettings.ResumeLayout(false);
             this.gbSettings.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.nudBulkCount)).EndInit();
             this.gbEnvironments.ResumeLayout(false);
             this.gbEnvironments.PerformLayout();
             this.tsMain.ResumeLayout(false);
@@ -769,8 +860,6 @@
 
         #endregion
         private System.Windows.Forms.ToolStrip tsMain;
-        private System.Windows.Forms.ToolStripButton tsbCloseThisTab;
-        private System.Windows.Forms.ToolStripSeparator toolStripSeparator2;
         private System.Windows.Forms.ToolStripButton tsbRefreshEntities;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripButton tsbTransferDashboards;
@@ -830,5 +919,9 @@
         private System.Windows.Forms.Button btnLoadSettings;
         private System.Windows.Forms.ToolStripButton tsbPlaylist;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator4;
+        private System.Windows.Forms.CheckBox chkUseBulk;
+        private System.Windows.Forms.NumericUpDown nudBulkCount;
+        private System.Windows.Forms.Label lblBulkCount;
+        private System.Windows.Forms.ToolStripButton tsbCancel;
     }
 }

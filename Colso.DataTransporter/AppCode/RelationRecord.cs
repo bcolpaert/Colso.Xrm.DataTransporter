@@ -1,44 +1,35 @@
 ﻿using Colso.Xrm.DataTransporter.Models;
 using Microsoft.Crm.Sdk.Messages;
 using Microsoft.Xrm.Sdk;
+using Microsoft.Xrm.Sdk.Messages;
 using Microsoft.Xrm.Sdk.Metadata;
 using Microsoft.Xrm.Sdk.Query;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
-using System.Xml.Linq;
 using static Colso.Xrm.DataTransporter.AppCode.Enumerations;
 
 namespace Colso.DataTransporter.AppCode
 {
     public class RelationRecord
     {
-        private EntityCollection sourceRecords;
-        private EntityCollection targetRecords;
-
         private static List<ManyToManyRelationshipMetadata> sourceEntitiesMetadata;
-        private static List<ManyToManyRelationshipMetadata> targetEntitiesMetadata;
         private static Guid targetCurrentUserId;
+        private static List<ManyToManyRelationshipMetadata> targetEntitiesMetadata;
+        private readonly ManyToManyRelationshipMetadata relation;
         private readonly IOrganizationService sourceService;
         private readonly IOrganizationService targetService;
-        private readonly ManyToManyRelationshipMetadata relation;
         private readonly TransferMode transfermode;
+        private EntityCollection sourceRecords;
+        private EntityCollection targetRecords;
+        private BackgroundWorker worker;
 
-        public event EventHandler OnStatusMessage;
-        public event EventHandler OnProgress;
-
-        public string Filter { get; set; }
-        public List<Item<EntityReference, EntityReference>> Mappings { get; set; }
-
-        public string Name { get; }
-        public List<string> Messages { get; }
-
-        public RelationRecord(ManyToManyRelationshipMetadata relation, TransferMode mode, IOrganizationService sourceService, IOrganizationService targetService)
+        public RelationRecord(ManyToManyRelationshipMetadata relation, TransferMode mode, BackgroundWorker worker, IOrganizationService sourceService, IOrganizationService targetService)
         {
             if (sourceEntitiesMetadata == null)
             {
@@ -55,6 +46,7 @@ namespace Colso.DataTransporter.AppCode
                 targetCurrentUserId = ((WhoAmIResponse)targetService.Execute(new WhoAmIRequest())).UserId;
             }
 
+            this.worker = worker;
             this.relation = relation;
             this.transfermode = mode;
             this.sourceService = sourceService;
@@ -63,117 +55,20 @@ namespace Colso.DataTransporter.AppCode
             this.Messages = new List<string>();
         }
 
-        public void Transfer()
+        public event EventHandler OnProgress;
+
+        public event EventHandler OnStatusMessage;
+
+        public string Filter { get; set; }
+        public List<Item<EntityReference, EntityReference>> Mappings { get; set; }
+
+        public List<string> Messages { get; }
+        public string Name { get; }
+
+        public void Transfer(bool useBulk = false, int bulkCount = 100)
         {
             RetrieveData();
-            DoTransfer();
-        }
-
-        private void RetrieveData()
-        {
-            // Check if the record already exists on target organization
-            var sourceqry = new QueryExpression(relation.IntersectEntityName) { ColumnSet = new ColumnSet(true) };
-            var targetqry = new QueryExpression(relation.IntersectEntityName) { ColumnSet = new ColumnSet(true) };
-
-            SetProgress(0, "Retrieving records...");
-            var sourceRetrieveTask = Task.Factory.StartNew<EntityCollection>(() => { return RetrieveAll(sourceService, sourceqry); });
-            var targetRetrieveTask = Task.Factory.StartNew<EntityCollection>(() => { return RetrieveAll(targetService, targetqry); });
-            Task.WaitAll(sourceRetrieveTask, targetRetrieveTask);
-
-            sourceRecords = sourceRetrieveTask.Result;
-            targetRecords = targetRetrieveTask.Result;
-        }
-
-        private void DoTransfer()
-        {
-            if (sourceRecords == null || targetRecords == null)
-                return;
-
-            var recordCount = sourceRecords.Entities.Count;
-            var missingCount = 0;
-            var createCount = 0;
-            var updateCount = 0;
-            var deleteCount = 0;
-            var skipCount = 0;
-            var errorCount = 0;
-            var totalTaskCount = sourceRecords.Entities.Count;
-
-            // Delete the missing source records in the target environment
-            if ((transfermode & TransferMode.Delete) == TransferMode.Delete)
-            {
-                //var missing = targetRecords.Entities.Select(e => e.Id).Except(sourceRecords.Entities.Select(e => e.Id)).ToArray();
-                var missing = targetRecords.Entities
-                    .Where(te => !sourceRecords.Entities.Any(se => te.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute).Equals(se.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute)) && te.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute).Equals(se.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute))))
-                    .ToArray();
-
-                missingCount = missing.Length;
-                totalTaskCount += missingCount;
-                for (int i = 0; i < missingCount; i++)
-                {
-                    var record = missing[i];
-                    var entity1id = record.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute);
-                    var entity2id = record.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute);
-                    SetProgress(i / totalTaskCount, "");
-                    SetStatusMessage("{0}/{1}: delete record", i + 1, missingCount);
-                    if ((transfermode & TransferMode.Preview) != TransferMode.Preview) Disassociate(relation.SchemaName, relation.Entity1LogicalName, entity1id, relation.Entity2LogicalName, entity2id);
-                    deleteCount++;
-                }
-            }
-
-            // Transfer records
-            for (int i = 0; i < recordCount; i++)
-            {
-                try
-                {
-                    var record = sourceRecords.Entities[i];
-                    var entity1id = record.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute);
-                    var entity2id = record.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute);
-                    var recordexist = targetRecords.Entities.Any(e => e.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute).Equals(entity1id) && e.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute).Equals(entity2id));
-
-                    var name = relation.SchemaName;
-                    SetProgress((i + missingCount) / totalTaskCount, "Transfering relation '{0}'...", name);
-
-                    if (!recordexist && ((transfermode & TransferMode.Create) == TransferMode.Create))
-                    {
-                        // Create missing record
-                        SetStatusMessage("{0}/{1}: create record", i + 1, recordCount);
-                        ApplyMappings(record);
-                        if ((transfermode & TransferMode.Preview) != TransferMode.Preview) Associate(relation.SchemaName, relation.Entity1LogicalName, entity1id, relation.Entity2LogicalName, entity2id);
-                        createCount++;
-                    }
-                    else
-                    {
-                        SetStatusMessage("{0}/{1}: skip record", i + 1, recordCount);
-                        skipCount++;
-                    }
-                }
-                catch (System.ServiceModel.FaultException<OrganizationServiceFault> error)
-                {
-                    this.Messages.Add(error.Message);
-                    errorCount++;
-                }
-            }
-
-            SetStatusMessage("{0} created; {1} updated; {2} deleted; {3} skipped; {4} errors", createCount, updateCount, deleteCount, skipCount, errorCount);
-        }
-
-        private void Associate(string relationshipName, string entity1LogicalName, Guid entity1Id, string entity2LogicalName, Guid entity2Id)
-        {
-            var request = new AssociateEntitiesRequest();
-            request.Moniker1 = new EntityReference { Id = entity1Id, LogicalName = entity1LogicalName };
-            request.Moniker2 = new EntityReference { Id = entity2Id, LogicalName = entity2LogicalName };
-            request.RelationshipName = relationshipName;
-
-            targetService.Execute(request);
-        }
-        private void Disassociate(string relationshipName, string entity1LogicalName, Guid entity1Id, string entity2LogicalName, Guid entity2Id)
-        {
-            var request = new DisassociateEntitiesRequest();
-            request.Moniker1 = new EntityReference { Id = entity1Id, LogicalName = entity1LogicalName };
-            request.Moniker2 = new EntityReference { Id = entity2Id, LogicalName = entity2LogicalName };
-            request.RelationshipName = relationshipName;
-
-            targetService.Execute(request);
+            DoTransfer(useBulk, bulkCount);
         }
 
         private void ApplyMappings(Entity e)
@@ -187,51 +82,14 @@ namespace Colso.DataTransporter.AppCode
             }
         }
 
-        private EntityCollection RetrieveAll(IOrganizationService service, QueryExpression query, int pageSize = 250)
+        private void Associate(string relationshipName, string entity1LogicalName, Guid entity1Id, string entity2LogicalName, Guid entity2Id)
         {
-            var collection = new EntityCollection();
-            query.PageInfo.PageNumber = 1;
-            query.PageInfo.Count = pageSize;
-            query.PageInfo.PagingCookie = null;
+            var request = new AssociateEntitiesRequest();
+            request.Moniker1 = new EntityReference { Id = entity1Id, LogicalName = entity1LogicalName };
+            request.Moniker2 = new EntityReference { Id = entity2Id, LogicalName = entity2LogicalName };
+            request.RelationshipName = relationshipName;
 
-            EntityCollection tempCollection;
-            do
-            {
-                tempCollection = service.RetrieveMultiple((QueryBase)query);
-                PagingInfo pageInfo = query.PageInfo;
-                int num = pageInfo.PageNumber + 1;
-                pageInfo.PageNumber = num;
-                query.PageInfo.PagingCookie = tempCollection.PagingCookie;
-                collection.Entities.AddRange(tempCollection.Entities);
-            }
-            while (tempCollection.MoreRecords);
-
-            collection.EntityName = query.EntityName;
-            collection.MoreRecords = false;
-            collection.TotalRecordCount = collection.Entities.Count;
-
-            return collection;
-        }
-
-        private EntityCollection RetrieveAll(IOrganizationService service, XmlDocument fetchXml, int pageSize = 250)
-        {
-            EntityCollection collection = new EntityCollection();
-            int page = 1;
-            string cookie = (string)null;
-            EntityCollection tempCollection;
-            do
-            {
-                tempCollection = service.RetrieveMultiple((QueryBase)new FetchExpression(this.CreateXml(fetchXml, cookie, page, pageSize)));
-                ++page;
-                cookie = tempCollection.PagingCookie;
-                collection.Entities.AddRange((IEnumerable<Entity>)tempCollection.Entities);
-            }
-            while (tempCollection.MoreRecords);
-
-            collection.MoreRecords = false;
-            collection.TotalRecordCount = collection.Entities.Count;
-
-            return collection;
+            targetService.Execute(request);
         }
 
         private XmlDocument BuildFetchXml(string entityLogicalName, string[] columns, string filter)
@@ -320,12 +178,239 @@ namespace Colso.DataTransporter.AppCode
             return sb.ToString();
         }
 
-        private void SetStatusMessage(string format, params object[] args)
+        private void Disassociate(string relationshipName, string entity1LogicalName, Guid entity1Id, string entity2LogicalName, Guid entity2Id)
         {
-            // Make sure someone is listening to event
-            if (OnStatusMessage == null) return;
+            var request = new DisassociateEntitiesRequest();
+            request.Moniker1 = new EntityReference { Id = entity1Id, LogicalName = entity1LogicalName };
+            request.Moniker2 = new EntityReference { Id = entity2Id, LogicalName = entity2LogicalName };
+            request.RelationshipName = relationshipName;
 
-            OnStatusMessage(this, new StatusMessageEventArgs(string.Format(format, args)));
+            targetService.Execute(request);
+        }
+
+        private void DoTransfer(bool useBulk = false, int bulkCount = 100)
+        {
+            if (sourceRecords == null || targetRecords == null)
+                return;
+
+            var recordCount = sourceRecords.Entities.Count;
+            var missingCount = 0;
+            var createCount = 0;
+            var updateCount = 0;
+            var deleteCount = 0;
+            var skipCount = 0;
+            var errorCount = 0;
+            var totalTaskCount = sourceRecords.Entities.Count;
+
+            var bulk = new ExecuteMultipleRequest
+            {
+                Requests = new OrganizationRequestCollection(),
+                Settings = new ExecuteMultipleSettings
+                {
+                    ContinueOnError = true
+                }
+            };
+
+            int processed = 0;
+
+            // Delete the missing source records in the target environment
+            if ((transfermode & TransferMode.Delete) == TransferMode.Delete)
+            {
+                //var missing = targetRecords.Entities.Select(e => e.Id).Except(sourceRecords.Entities.Select(e => e.Id)).ToArray();
+                var missing = targetRecords.Entities
+                    .Where(te => !sourceRecords.Entities.Any(se => te.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute).Equals(se.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute)) && te.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute).Equals(se.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute))))
+                    .ToArray();
+
+                missingCount = missing.Length;
+                totalTaskCount += missingCount;
+                for (int i = 0; i < missingCount; i++)
+                {
+                    processed++;
+                    var record = missing[i];
+                    var entity1id = record.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute);
+                    var entity2id = record.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute);
+                    SetProgress(i / totalTaskCount, "");
+                    SetStatusMessage(useBulk ? "Adding relationship {0}/{1} for deletion" : "{0}/{1}: delete record", i + 1, missingCount);
+                    if ((transfermode & TransferMode.Preview) != TransferMode.Preview)
+                    {
+                        if (useBulk)
+                        {
+                            bulk.Requests.Add(new DisassociateRequest
+                            {
+                                Target = new EntityReference(relation.Entity1LogicalName, entity1id),
+                                Relationship = new Relationship(relation.SchemaName),
+                                RelatedEntities = new EntityReferenceCollection
+                                {
+                                    new EntityReference(relation.Entity2LogicalName, entity2id)
+                                }
+                            });
+
+                            if (bulk.Requests.Count % bulkCount == 0 || processed == missingCount)
+                            {
+                                var bulkResponse = (ExecuteMultipleResponse)targetService.Execute(bulk);
+                                // MscrmTools (26/11/2020): Should we need to handle potential exceptions?
+                                deleteCount += bulk.Requests.Count;
+                                bulk.Requests = new OrganizationRequestCollection();
+                            }
+                        }
+                        else
+                        {
+                            Disassociate(relation.SchemaName, relation.Entity1LogicalName, entity1id,
+                                relation.Entity2LogicalName, entity2id);
+                            deleteCount++;
+                        }
+                    }
+                }
+            }
+
+            processed = 0;
+            // Transfer records
+            for (int i = 0; i < recordCount; i++)
+            {
+                processed++;
+                try
+                {
+                    var record = sourceRecords.Entities[i];
+                    var entity1id = record.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute);
+                    var entity2id = record.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute);
+                    var recordexist = targetRecords.Entities.Any(e => e.GetAttributeValue<Guid>(relation.Entity1IntersectAttribute).Equals(entity1id) && e.GetAttributeValue<Guid>(relation.Entity2IntersectAttribute).Equals(entity2id));
+
+                    var name = relation.SchemaName;
+                    SetProgress((i + missingCount) / totalTaskCount, "Transfering relation '{0}'...", name);
+
+                    if (!recordexist && ((transfermode & TransferMode.Create) == TransferMode.Create))
+                    {
+                        // Create missing record
+                        SetStatusMessage(useBulk ? "Adding relationship {0}/{1} for creation" : "{0}/{1}: create record", i + 1, recordCount);
+                        ApplyMappings(record);
+                        if ((transfermode & TransferMode.Preview) != TransferMode.Preview)
+                        {
+                            if (useBulk)
+                            {
+                                bulk.Requests.Add(new AssociateRequest
+                                {
+                                    Target = new EntityReference(relation.Entity1LogicalName, entity1id),
+                                    Relationship = new Relationship(relation.SchemaName),
+                                    RelatedEntities = new EntityReferenceCollection
+                                    {
+                                        new EntityReference(relation.Entity2LogicalName, entity2id)
+                                    }
+                                });
+                            }
+                            else
+                            {
+                                Associate(relation.SchemaName, relation.Entity1LogicalName, entity1id,
+                                    relation.Entity2LogicalName, entity2id);
+                                createCount++;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        SetStatusMessage("{0}/{1}: skip record", i + 1, recordCount);
+                        skipCount++;
+                    }
+
+                    if (useBulk)
+                    {
+                        if (bulk.Requests.Count > 0 && bulk.Requests.Count % bulkCount == 0 || processed == recordCount)
+                        {
+                            SetStatusMessage($"Processing records {processed - bulk.Requests.Count} to {processed} of {recordCount}");
+
+                            var bulkResponse = (ExecuteMultipleResponse)targetService.Execute(bulk);
+                            // MscrmTools (26/11/2020): Should we need to handle potential exceptions?
+
+                            var errorIndexes = new List<int>();
+                            foreach (var response in bulkResponse.Responses)
+                            {
+                                if (response.Fault != null)
+                                {
+                                    errorIndexes.Add(response.RequestIndex);
+                                    Messages.Add(response.Fault.Message);
+                                    errorCount++;
+                                }
+                            }
+
+                            for (var j = 0; j < bulk.Requests.Count; j++)
+                            {
+                                if (errorIndexes.Contains(j)) continue;
+                                createCount++;
+                            }
+
+                            bulk.Requests = new OrganizationRequestCollection();
+                        }
+                    }
+                }
+                catch (System.ServiceModel.FaultException<OrganizationServiceFault> error)
+                {
+                    this.Messages.Add(error.Message);
+                    errorCount++;
+                }
+            }
+
+            SetStatusMessage("{0} created; {1} updated; {2} deleted; {3} skipped; {4} errors", createCount, updateCount, deleteCount, skipCount, errorCount);
+        }
+
+        private EntityCollection RetrieveAll(IOrganizationService service, QueryExpression query, int pageSize = 250)
+        {
+            var collection = new EntityCollection();
+            query.PageInfo.PageNumber = 1;
+            query.PageInfo.Count = pageSize;
+            query.PageInfo.PagingCookie = null;
+
+            EntityCollection tempCollection;
+            do
+            {
+                tempCollection = service.RetrieveMultiple((QueryBase)query);
+                PagingInfo pageInfo = query.PageInfo;
+                int num = pageInfo.PageNumber + 1;
+                pageInfo.PageNumber = num;
+                query.PageInfo.PagingCookie = tempCollection.PagingCookie;
+                collection.Entities.AddRange(tempCollection.Entities);
+            }
+            while (tempCollection.MoreRecords);
+
+            collection.EntityName = query.EntityName;
+            collection.MoreRecords = false;
+            collection.TotalRecordCount = collection.Entities.Count;
+
+            return collection;
+        }
+
+        private EntityCollection RetrieveAll(IOrganizationService service, XmlDocument fetchXml, int pageSize = 250)
+        {
+            EntityCollection collection = new EntityCollection();
+            int page = 1;
+            string cookie = (string)null;
+            EntityCollection tempCollection;
+            do
+            {
+                tempCollection = service.RetrieveMultiple((QueryBase)new FetchExpression(this.CreateXml(fetchXml, cookie, page, pageSize)));
+                ++page;
+                cookie = tempCollection.PagingCookie;
+                collection.Entities.AddRange((IEnumerable<Entity>)tempCollection.Entities);
+            }
+            while (tempCollection.MoreRecords);
+
+            collection.MoreRecords = false;
+            collection.TotalRecordCount = collection.Entities.Count;
+
+            return collection;
+        }
+
+        private void RetrieveData()
+        {
+            // Check if the record already exists on target organization
+            var sourceqry = new QueryExpression(relation.IntersectEntityName) { ColumnSet = new ColumnSet(true) };
+            var targetqry = new QueryExpression(relation.IntersectEntityName) { ColumnSet = new ColumnSet(true) };
+
+            SetProgress(0, "Retrieving records...");
+            var sourceRetrieveTask = Task.Factory.StartNew<EntityCollection>(() => { return RetrieveAll(sourceService, sourceqry); });
+            var targetRetrieveTask = Task.Factory.StartNew<EntityCollection>(() => { return RetrieveAll(targetService, targetqry); });
+            Task.WaitAll(sourceRetrieveTask, targetRetrieveTask);
+
+            sourceRecords = sourceRetrieveTask.Result;
+            targetRecords = targetRetrieveTask.Result;
         }
 
         private void SetProgress(int progress, string format, params object[] args)
@@ -334,6 +419,14 @@ namespace Colso.DataTransporter.AppCode
             if (OnProgress == null) return;
 
             OnProgress(this, new ProgressEventArgs(progress, string.Format(format, args)));
+        }
+
+        private void SetStatusMessage(string format, params object[] args)
+        {
+            // Make sure someone is listening to event
+            if (OnStatusMessage == null) return;
+
+            OnStatusMessage(this, new StatusMessageEventArgs(string.Format(format, args)));
         }
     }
 }

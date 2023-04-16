@@ -6,12 +6,15 @@ using McTools.Xrm.Connection;
 using Microsoft.Xrm.Sdk;
 using Microsoft.Xrm.Sdk.Metadata;
 using System;
+using System.Activities.Statements;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Drawing;
 using System.Linq;
 using System.ServiceModel;
+using System.Text;
 using System.Windows.Forms;
+using System.Xml;
 using System.Xml.Serialization;
 using XrmToolBox.Extensibility;
 using XrmToolBox.Extensibility.Args;
@@ -20,7 +23,7 @@ using EntitySetting = Colso.Xrm.DataTransporter.Models.EntitySetting;
 
 namespace Colso.DataTransporter
 {
-    public partial class DataTransporter : MultipleConnectionsPluginControlBase, IXrmToolBoxPluginControl, IGitHubPlugin, IHelpPlugin, IStatusBarMessenger, IPayPalPlugin
+    public partial class DataTransporter : MultipleConnectionsPluginControlBase, IXrmToolBoxPluginControl, IGitHubPlugin, IHelpPlugin, IStatusBarMessenger, IPayPalPlugin, IMessageBusHost
     {
         #region Variables
 
@@ -41,7 +44,7 @@ namespace Colso.DataTransporter
         private IOrganizationService targetService;
 
         private bool workingstate;
-
+        
         private enum ServiceType
         {
             Source,
@@ -49,6 +52,8 @@ namespace Colso.DataTransporter
         }
 
         #endregion Variables
+        
+        public event EventHandler<MessageBusEventArgs> OnOutgoingMessage;
 
         public DataTransporter()
         {
@@ -116,62 +121,69 @@ namespace Colso.DataTransporter
 
         private void btnFilter_Click(object sender, EventArgs e)
         {
-            if (lvEntities.SelectedItems.Count > 0)
+            var entityLogicalName = GetSelectedEntityLogicalName();
+            if (entityLogicalName != null)
             {
-                var entityitem = lvEntities.SelectedItems[0];
+                FilterEditor filterDialog = new FilterEditor(settings[entityLogicalName].Filter, this);
+                ShowFilterDialog(filterDialog, entityLogicalName);
+            }
+        }
 
-                if (entityitem != null && entityitem.Tag != null)
-                {
-                    var filter = string.Empty;
-                    var entity = (EntityMetadata)entityitem.Tag;
-                    var filterDialog = new FilterEditor(filter = settings[entity.LogicalName].Filter);
-                    filterDialog.ShowDialog(ParentForm);
-                    settings[entity.LogicalName].Filter = filterDialog.Filter;
-                    InitFilter();
-                }
+        private void ShowFilterDialog(FilterEditor filterDialog, string entityLogicalName)
+        {
+            if (filterDialog.ShowDialog(ParentForm) != DialogResult.OK)
+            {
+                filterDialog.Dispose();
+                return;
+            }
+
+            try
+            {
+                settings[entityLogicalName].Filter = ProcessFilter(filterDialog.Filter, entityLogicalName);
+                InitFilter();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("An error occurred: " + ex.Message, "Error Processing Filter", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowFilterDialog(filterDialog, entityLogicalName);
             }
         }
 
         private void btnLoadSettings_Click(object sender, EventArgs e)
         {
-            if (lvEntities.SelectedItems.Count > 0)
+            var entityLogicalName = GetSelectedEntityLogicalName();
+            if (entityLogicalName != null)
             {
-                var entityitem = lvEntities.SelectedItems[0];
-
-                if (entityitem != null && entityitem.Tag != null)
+                using (var dlg = new OpenFileDialog())
                 {
-                    var entity = (EntityMetadata)entityitem.Tag;
-                    using (var dlg = new OpenFileDialog())
+                    dlg.Filter = "xml files (*.xml)|*.xml";
+                    dlg.FilterIndex = 2;
+                    dlg.RestoreDirectory = true;
+
+                    if (dlg.ShowDialog() == DialogResult.OK)
                     {
-                        dlg.Filter = "xml files (*.xml)|*.xml";
-                        dlg.FilterIndex = 2;
-                        dlg.RestoreDirectory = true;
-
-                        if (dlg.ShowDialog() == DialogResult.OK)
+                        using (var myFileStream = new System.IO.FileStream(dlg.FileName, System.IO.FileMode.Open))
                         {
-                            using (var myFileStream = new System.IO.FileStream(dlg.FileName, System.IO.FileMode.Open))
+                            var mySerializer = new XmlSerializer(typeof(EntitySetting));
+
+                            try
                             {
-                                var mySerializer = new XmlSerializer(typeof(EntitySetting));
-
-                                try
-                                {
-                                    var es = (EntitySetting)mySerializer.Deserialize(myFileStream);
-                                    // Reset settings
-                                    settings[entity.LogicalName].Filter = es.Filter;
-                                    settings[entity.LogicalName].UnmarkedAttributes = es.UnmarkedAttributes;
-                                    settings[organisationid].Mappings = es.Mappings;
-                                }
-                                catch (Exception ex)
-                                {
-                                    // Error deserializing
-                                    MessageBox.Show(ex.Message, "Error opening Entity Setting", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                }
-
-                                // Init new settings
-                                InitMappings();
-                                InitFilter();
-                                PopulateAttributes();
+                                var es = (EntitySetting)mySerializer.Deserialize(myFileStream);
+                                // Reset settings
+                                settings[entityLogicalName].Filter = es.Filter;
+                                settings[entityLogicalName].UnmarkedAttributes = es.UnmarkedAttributes;
+                                settings[organisationid].Mappings = es.Mappings;
                             }
+                            catch (Exception ex)
+                            {
+                                // Error deserializing
+                                MessageBox.Show(ex.Message, "Error opening Entity Setting", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            }
+
+                            // Init new settings
+                            InitMappings();
+                            InitFilter();
+                            PopulateAttributes();
                         }
                     }
                 }
@@ -194,46 +206,41 @@ namespace Colso.DataTransporter
 
         private void btnSaveSettings_Click(object sender, EventArgs e)
         {
-            if (lvEntities.SelectedItems.Count > 0)
+            var entityLogicalName = GetSelectedEntityLogicalName();
+            if (entityLogicalName != null)
             {
-                var entityitem = lvEntities.SelectedItems[0];
-
-                if (entityitem != null && entityitem.Tag != null)
+                using (var dlg = new SaveFileDialog())
                 {
-                    var entity = (EntityMetadata)entityitem.Tag;
-                    using (var dlg = new SaveFileDialog())
+                    dlg.FileName = string.Concat(entityLogicalName, ".xml");
+                    dlg.Filter = "xml files (*.xml)|*.xml";
+                    dlg.FilterIndex = 2;
+                    dlg.RestoreDirectory = true;
+
+                    if (dlg.ShowDialog() == DialogResult.OK)
                     {
-                        dlg.FileName = string.Concat(entity.LogicalName, ".xml");
-                        dlg.Filter = "xml files (*.xml)|*.xml";
-                        dlg.FilterIndex = 2;
-                        dlg.RestoreDirectory = true;
+                        // Good time to save the attributes
+                        SaveUnmarkedAttributes();
 
-                        if (dlg.ShowDialog() == DialogResult.OK)
+                        // Save filter + selected attributes + mappings (org independant)
+                        var es = new EntitySetting()
                         {
-                            // Good time to save the attributes
-                            SaveUnmarkedAttributes();
+                            LogicalName = entityLogicalName,
+                            Filter = settings[entityLogicalName].Filter,
+                            UnmarkedAttributes = settings[entityLogicalName].UnmarkedAttributes,
+                            Mappings = settings[organisationid].Mappings
+                        };
 
-                            // Save filter + selected attributes + mappings (org independant)
-                            var es = new EntitySetting()
+                        System.IO.Stream myStream;
+                        if ((myStream = dlg.OpenFile()) != null)
+                        {
+                            try
                             {
-                                LogicalName = entity.LogicalName,
-                                Filter = settings[entity.LogicalName].Filter,
-                                UnmarkedAttributes = settings[entity.LogicalName].UnmarkedAttributes,
-                                Mappings = settings[organisationid].Mappings
-                            };
-
-                            System.IO.Stream myStream;
-                            if ((myStream = dlg.OpenFile()) != null)
+                                var SerializerObj = new XmlSerializer(typeof(EntitySetting));
+                                SerializerObj.Serialize(myStream, es);
+                            }
+                            finally
                             {
-                                try
-                                {
-                                    var SerializerObj = new XmlSerializer(typeof(EntitySetting));
-                                    SerializerObj.Serialize(myStream, es);
-                                }
-                                finally
-                                {
-                                    myStream.Close();
-                                }
+                                myStream.Close();
                             }
                         }
                     }
@@ -288,6 +295,7 @@ namespace Colso.DataTransporter
         private void lvEntities_SelectedIndexChanged(object sender, EventArgs e)
         {
             PopulateAttributes();
+            btnFilter.Enabled = lvEntities.SelectedItems.Count > 0;
         }
 
         private void tabSourceObjects_SelectedIndexChanged(object sender, EventArgs e)
@@ -386,19 +394,62 @@ namespace Colso.DataTransporter
             }
         }
 
+        private string ProcessFilter(string filter, string entityLogicalName)
+        {
+            if (string.IsNullOrWhiteSpace(filter))
+                return null;
+
+            var filterXml = new XmlDocument();
+            filterXml.LoadXml(filter);
+            var rootElement = filterXml.DocumentElement;
+            if (rootElement == null)
+            {
+                return null;
+            }
+
+            switch (rootElement.Name)
+            {
+                case "fetch":
+                {
+                    if (rootElement.Attributes["top"] != null)
+                    {
+                        throw new ArgumentException("The 'top' attribute is not supported. Please modify the FetchXML to use 'count' instead.");
+                    }
+
+                    var entityElement = rootElement.GetElementsByTagName("entity")[0];
+                    if (entityElement.Attributes != null && entityElement.Attributes["name"].Value != entityLogicalName)
+                    {
+                        throw new ArgumentException($"Invalid Entity Name in FetchXML: {entityElement.Attributes["name"].Value}. Expected entity name: {entityLogicalName}.");
+                    }
+
+                    var columns = (from XmlNode node in entityElement.ChildNodes where node.Name == "attribute" && node.Attributes != null select node.Attributes["name"].Value).ToList();
+                    SetSelectedAttributes(columns);
+                    return filter;
+                }
+                case "filter":
+                    return filter;
+                default:
+                    throw new ArgumentException("Invalid Filter: The filter needs to be a valid FetchXml or the filter section from the FetchXml query.");
+            }
+        }
+
+        private void SetSelectedAttributes(ICollection<string> columns)
+        {
+            foreach (ListViewItem item in lvAttributes.Items)
+            {
+                item.Checked = columns.Contains(item.SubItems[1].Text);
+            }
+
+        }
+
         private void InitFilter()
         {
             string filter = null;
 
-            if (lvEntities.SelectedItems.Count > 0)
+            var entityLogicalName = GetSelectedEntityLogicalName();
+            if (entityLogicalName != null)
             {
-                var entityitem = lvEntities.SelectedItems[0];
-
-                if (entityitem != null && entityitem.Tag != null)
-                {
-                    var entity = (EntityMetadata)entityitem.Tag;
-                    filter = settings[entity.LogicalName].Filter;
-                }
+                filter = settings[entityLogicalName].Filter;
             }
 
             btnFilter.ForeColor = string.IsNullOrEmpty(filter) ? Color.Black : Color.Blue;
@@ -659,16 +710,11 @@ namespace Colso.DataTransporter
 
         private void SaveUnmarkedAttributes()
         {
-            if (lvEntities.SelectedItems.Count > 0)
+            var entityLogicalName = GetSelectedEntityLogicalName();
+            if (entityLogicalName != null)
             {
-                var entityitem = lvEntities.SelectedItems[0];
-
-                if (entityitem != null && entityitem.Tag != null)
-                {
-                    var entity = (EntityMetadata)entityitem.Tag;
-                    var attributes = lvAttributes.Items.Cast<ListViewItem>().Where(i => !i.Checked).Select(v => (AttributeMetadata)v.Tag).Select(a => a.LogicalName).ToList();
-                    settings[entity.LogicalName].UnmarkedAttributes = attributes;
-                }
+                var attributes = lvAttributes.Items.Cast<ListViewItem>().Where(i => !i.Checked).Select(v => (AttributeMetadata)v.Tag).Select(a => a.LogicalName).ToList();
+                    settings[entityLogicalName].UnmarkedAttributes = attributes;
             }
         }
 
@@ -946,6 +992,96 @@ namespace Colso.DataTransporter
         {
             CancelWorker();
             tsbCancel.Text = @"Cancelling...";
+        }
+
+        private void lvAttributes_ItemChecked(object sender, ItemCheckedEventArgs e)
+        {
+            if (lvAttributes.FocusedItem != null && lvEntities.SelectedItems.Count > 0 && lvEntities.SelectedItems[0]?.Tag != null)
+            {
+                var entityLogicalName = ((EntityMetadata)lvEntities.SelectedItems[0].Tag).LogicalName;
+                var filter = settings[entityLogicalName].Filter;
+
+                if (string.IsNullOrWhiteSpace(filter))
+                    return;
+
+                var filterXml = new XmlDocument();
+                filterXml.LoadXml(filter);
+                var rootElement = filterXml.DocumentElement;
+                if (rootElement != null && rootElement.Name == "fetch")
+                {
+                    var elEntity = rootElement.GetElementsByTagName("entity")[0];
+                    for (var i = elEntity.ChildNodes.Count - 1; i >= 0; i--)
+                    {
+                        var node = elEntity.ChildNodes[i];
+                        if (node.Name == "attribute")
+                        {
+                            elEntity.RemoveChild(node);
+                        }
+                    }
+
+                    foreach (ListViewItem selectedAttribute in lvAttributes.CheckedItems)
+                    {
+                        var column = selectedAttribute.SubItems[1].Text;
+                        var elAttribute = filterXml.CreateElement(string.Empty, "attribute", string.Empty);
+                        elEntity.PrependChild(elAttribute);
+
+                        var attaname = filterXml.CreateAttribute("name");
+                        attaname.Value = column;
+                        elAttribute.Attributes.Append(attaname);
+                    }
+
+                    var xmlBuilder = new StringBuilder();
+                    var writer = XmlWriter.Create(xmlBuilder, new XmlWriterSettings { Indent = true });
+                    filterXml.Save(writer);
+                    writer.Close();
+                    settings[entityLogicalName].Filter = xmlBuilder.ToString();
+                }
+            }
+        }
+
+        public void OnIncomingMessage(MessageBusEventArgs message)
+        {
+            if (message.SourcePlugin == "FetchXML Builder" &&
+                message.TargetArgument is string fetchxml &&
+                !string.IsNullOrWhiteSpace(fetchxml))
+            {
+                var entityLogicalName = GetSelectedEntityLogicalName();
+                if (entityLogicalName != null)
+                {
+                    var filterDialog = new FilterEditor(fetchxml, this);
+                    ShowFilterDialog(filterDialog, entityLogicalName);
+                }
+            }
+        }
+
+        public void OpenFxb(string fetchXml)
+        {
+            var messageBusEventArgs = new MessageBusEventArgs("FetchXML Builder")
+            {
+                SourcePlugin = "Data Transporter",
+                TargetArgument = fetchXml
+            };
+            try
+            {
+                OnOutgoingMessage(this, messageBusEventArgs);
+            }
+            catch (System.IO.FileNotFoundException)
+            {
+                MessageBox.Show("FetchXML Builder is not installed.\nDownload latest version from the Tool Library.", "FetchXML Builder",
+                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+            catch (PluginNotFoundException)
+            {
+                MessageBox.Show("FetchXML Builder was not found.\nInstall it from the XrmToolBox Tool Library.", "FetchXML Builder",
+                    MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+            }
+        }
+
+        private string GetSelectedEntityLogicalName()
+        {
+            if (lvEntities.SelectedItems.Count <= 0) return null;
+            var entityItem = lvEntities.SelectedItems[0];
+            return ((EntityMetadata)entityItem?.Tag)?.LogicalName;
         }
     }
 }

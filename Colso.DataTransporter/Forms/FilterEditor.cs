@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using XrmToolBox.Extensibility;
+using XrmToolBox.Extensibility.Interfaces;
 
 namespace Colso.DataTransporter.Forms
 {
@@ -14,12 +15,12 @@ namespace Colso.DataTransporter.Forms
         private static Color HC_INNERTEXT = Color.Black;
 
         private bool _isHighlightBusy = false;
+        private readonly DataTransporter _parentForm = null;
 
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         private static extern IntPtr SendMessage(IntPtr hWnd, int msg, IntPtr wp, IntPtr lp);
         [System.Runtime.InteropServices.DllImport("User32.dll")]
         private static extern int GetScrollPos(IntPtr hWnd, int nBar);
-
         public enum Message : uint
         {
             WM_VSCROLL = 0x0115,
@@ -52,15 +53,11 @@ namespace Colso.DataTransporter.Forms
             }
         }
 
-        public FilterEditor(string currentfilter)
+        public FilterEditor(string currentfilter, DataTransporter parentForm)
         {
             InitializeComponent();
             this.Filter = currentfilter;
-        }
-
-        private void BtnCloseClick(object sender, EventArgs e)
-        {
-            Close();
+            _parentForm = parentForm;
         }
 
         private void txtFilter_TextChanged(object sender, EventArgs e)
@@ -210,5 +207,9 @@ namespace Colso.DataTransporter.Forms
             _isHighlightBusy = false;
         }
 
+        private void btnFxb_Click(object sender, EventArgs e)
+        {
+            _parentForm.OpenFxb(txtFilter.Text);
+        }
     }
 }

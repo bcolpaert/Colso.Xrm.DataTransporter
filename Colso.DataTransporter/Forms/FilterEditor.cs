@@ -53,6 +53,11 @@ namespace Colso.DataTransporter.Forms
             }
         }
 
+        public FilterEditor()
+        {
+            InitializeComponent();
+        }
+
         public FilterEditor(string currentfilter, DataTransporter parentForm)
         {
             InitializeComponent();

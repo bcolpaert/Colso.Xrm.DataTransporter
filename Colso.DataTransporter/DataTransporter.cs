@@ -12,6 +12,7 @@ using System.Collections.Specialized;
 using System.Drawing;
 using System.Linq;
 using System.ServiceModel;
+using System.ServiceModel.Configuration;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
@@ -346,7 +347,7 @@ namespace Colso.DataTransporter
 
         private bool ContainsText(ListViewItem item, string text)
         {
-            if (string.IsNullOrEmpty(text))
+            if (string.IsNullOrWhiteSpace(text))
                 return true;
 
             // Check everything lowercase
@@ -452,7 +453,7 @@ namespace Colso.DataTransporter
                 filter = settings[entityLogicalName].Filter;
             }
 
-            btnFilter.ForeColor = string.IsNullOrEmpty(filter) ? Color.Black : Color.Blue;
+            btnFilter.ForeColor = string.IsNullOrWhiteSpace(filter) ? Color.Black : Color.Blue;
         }
 
         private void InitMappings()
@@ -574,7 +575,7 @@ namespace Colso.DataTransporter
                                 var attributes = entitymeta.Attributes
                                     .Where(a => (a.IsValidForCreate != null && a.IsValidForCreate.Value))// || (a.IsValidForUpdate != null && a.IsValidForUpdate.Value))
                                     .Where(a => a.IsValidForRead != null && a.IsValidForRead.Value)
-                                    .Where(a => a.DisplayName != null && a.DisplayName.UserLocalizedLabel != null && !string.IsNullOrEmpty(a.DisplayName.UserLocalizedLabel.Label))
+                                    .Where(a => a.DisplayName != null && a.DisplayName.UserLocalizedLabel != null && !string.IsNullOrWhiteSpace(a.DisplayName.UserLocalizedLabel.Label))
                                     .ToList();
 
                                 // This is not necessary
@@ -740,7 +741,7 @@ namespace Colso.DataTransporter
 
             listview.Items.Clear(); // clear list items before adding
             // filter the items match with search key and add result to list view
-            listview.Items.AddRange(items.Where(i => string.IsNullOrEmpty(filter) || ContainsText(i, filter)).ToArray());
+            listview.Items.AddRange(items.Where(i => string.IsNullOrWhiteSpace(filter) || ContainsText(i, filter)).ToArray());
 
             workingstate = false;
         }
@@ -867,7 +868,7 @@ namespace Colso.DataTransporter
                     {
                         var entity = (EntityMetadata)entityitem.Tag;
 
-                        if (!string.IsNullOrEmpty(settings[entity.LogicalName].Filter))
+                        if (!string.IsNullOrWhiteSpace(settings[entity.LogicalName].Filter))
                         {
                             var msg = string.Format("You have a filter applied on \"{0}\" and checked the \"Delete\" flag. All records on the target environment which don't match the filtered soure set will be deleted! Are you sure you want to continue?", entity.LogicalName);
                             var result = MessageBox.Show(msg, "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
@@ -996,47 +997,53 @@ namespace Colso.DataTransporter
 
         private void lvAttributes_ItemChecked(object sender, ItemCheckedEventArgs e)
         {
-            if (lvAttributes.FocusedItem != null && lvEntities.SelectedItems.Count > 0 && lvEntities.SelectedItems[0]?.Tag != null)
+            var entityLogicalName = GetSelectedEntityLogicalName();
+            if (lvAttributes.FocusedItem == null || entityLogicalName == null)
+                return;
+
+            var filter = settings[entityLogicalName].Filter;
+
+            if (string.IsNullOrWhiteSpace(filter))
+                return;
+
+            var fetchXml = new XmlDocument();
+            fetchXml.LoadXml(filter);
+            var rootElement = fetchXml.DocumentElement;
+            if (rootElement != null && rootElement.Name == "fetch")
             {
-                var entityLogicalName = ((EntityMetadata)lvEntities.SelectedItems[0].Tag).LogicalName;
-                var filter = settings[entityLogicalName].Filter;
+                settings[entityLogicalName].Filter = populateAttributesInFetchXml(fetchXml);
+            }
+        }
 
-                if (string.IsNullOrWhiteSpace(filter))
-                    return;
-
-                var filterXml = new XmlDocument();
-                filterXml.LoadXml(filter);
-                var rootElement = filterXml.DocumentElement;
-                if (rootElement != null && rootElement.Name == "fetch")
+        private string populateAttributesInFetchXml(XmlDocument fetchXml)
+        {
+            var rootElement = fetchXml.DocumentElement;
+            var elEntity = rootElement.GetElementsByTagName("entity")[0];
+            for (var i = elEntity.ChildNodes.Count - 1; i >= 0; i--)
+            {
+                var node = elEntity.ChildNodes[i];
+                if (node.Name == "attribute")
                 {
-                    var elEntity = rootElement.GetElementsByTagName("entity")[0];
-                    for (var i = elEntity.ChildNodes.Count - 1; i >= 0; i--)
-                    {
-                        var node = elEntity.ChildNodes[i];
-                        if (node.Name == "attribute")
-                        {
-                            elEntity.RemoveChild(node);
-                        }
-                    }
-
-                    foreach (ListViewItem selectedAttribute in lvAttributes.CheckedItems)
-                    {
-                        var column = selectedAttribute.SubItems[1].Text;
-                        var elAttribute = filterXml.CreateElement(string.Empty, "attribute", string.Empty);
-                        elEntity.PrependChild(elAttribute);
-
-                        var attaname = filterXml.CreateAttribute("name");
-                        attaname.Value = column;
-                        elAttribute.Attributes.Append(attaname);
-                    }
-
-                    var xmlBuilder = new StringBuilder();
-                    var writer = XmlWriter.Create(xmlBuilder, new XmlWriterSettings { Indent = true });
-                    filterXml.Save(writer);
-                    writer.Close();
-                    settings[entityLogicalName].Filter = xmlBuilder.ToString();
+                    elEntity.RemoveChild(node);
                 }
             }
+
+            foreach (ListViewItem selectedAttribute in lvAttributes.CheckedItems)
+            {
+                var column = selectedAttribute.SubItems[1].Text;
+                var elAttribute = fetchXml.CreateElement(string.Empty, "attribute", string.Empty);
+                elEntity.PrependChild(elAttribute);
+
+                var attaname = fetchXml.CreateAttribute("name");
+                attaname.Value = column;
+                elAttribute.Attributes.Append(attaname);
+            }
+
+            var xmlBuilder = new StringBuilder();
+            var writer = XmlWriter.Create(xmlBuilder, new XmlWriterSettings { Indent = true });
+            fetchXml.Save(writer);
+            writer.Close();
+            return xmlBuilder.ToString();
         }
 
         public void OnIncomingMessage(MessageBusEventArgs message)
@@ -1056,6 +1063,12 @@ namespace Colso.DataTransporter
 
         public void OpenFxb(string fetchXml)
         {
+            fetchXml = ProcessFetchXmlForFxb(fetchXml, out var openFxb);
+            if (!openFxb)
+            {
+                return;
+            }
+
             var messageBusEventArgs = new MessageBusEventArgs("FetchXML Builder")
             {
                 SourcePlugin = "Data Transporter",
@@ -1075,6 +1088,39 @@ namespace Colso.DataTransporter
                 MessageBox.Show("FetchXML Builder was not found.\nInstall it from the XrmToolBox Tool Library.", "FetchXML Builder",
                     MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
+        }
+
+        private string ProcessFetchXmlForFxb(string fetchXml, out bool openFxb)
+        {
+            var entityLogicalName = GetSelectedEntityLogicalName();
+            if (string.IsNullOrWhiteSpace(fetchXml))
+            {
+                if (entityLogicalName != null)
+                {
+                    fetchXml = $"<fetch><entity name='{entityLogicalName}' /></fetch>";
+                }
+            }
+            else
+            {
+                var fetchXmlDocument = new XmlDocument();
+                fetchXmlDocument.LoadXml(fetchXml);
+                var rootElement = fetchXmlDocument.DocumentElement;
+                if (rootElement != null && rootElement.Name == "filter")
+                {
+                    DialogResult result = MessageBox.Show("The current filter XML will be converted into FetchXML? Are you sure you want to proceed?", "Edit Query in FetchXML Builder", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                    if (result == DialogResult.No)
+                    {
+                        openFxb = false;
+                        return null;
+                    }
+
+                    fetchXmlDocument.LoadXml($"<fetch><entity name='{entityLogicalName}'>{fetchXml}</entity></fetch>");
+                    fetchXml = populateAttributesInFetchXml(fetchXmlDocument);
+                }
+            }
+
+            openFxb = true;
+            return fetchXml;
         }
 
         private string GetSelectedEntityLogicalName()

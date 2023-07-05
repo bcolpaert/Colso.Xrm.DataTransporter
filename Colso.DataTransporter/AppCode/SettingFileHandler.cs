@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using XrmToolBox.Extensibility;
-using XrmToolBox.Extensibility.Args;
-using XrmToolBox.Extensibility.Interfaces;
 
 namespace Colso.DataTransporter.AppCode
 {

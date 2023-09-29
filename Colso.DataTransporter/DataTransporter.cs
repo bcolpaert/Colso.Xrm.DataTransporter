@@ -895,7 +895,7 @@ namespace Colso.DataTransporter
 
             WorkAsync(new WorkAsyncInfo
             {
-                Message = "Transfering records...",
+                Message = preview ? "Analyzing differences..." : "Transfering records...",
                 AsyncArgument = lvEntities.SelectedItems.Cast<ListViewItem>().Select(v => (EntityMetadata)v.Tag).ToList(),
                 IsCancelable = true,
                 Work = (worker, evt) =>

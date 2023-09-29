@@ -113,6 +113,24 @@ namespace Colso.DataTransporter.AppCode
 
         private XmlDocument BuildFetchXml(string entityLogicalName, string[] columns, string filter)
         {
+            // Check the filter
+            filter = filter?.Trim();
+            if (!string.IsNullOrEmpty(filter))
+            {
+                var filterdoc = new XmlDocument();
+                filterdoc.LoadXml(filter);
+                var rootfilter = filterdoc.DocumentElement;
+                if (rootfilter.Name == "fetch")
+                {
+                    return filterdoc;
+                }
+            }
+
+            return BuildFetchXmlWithFilter(entityLogicalName, columns, filter);
+        }
+
+        private XmlDocument BuildFetchXmlWithFilter(string entityLogicalName, string[] columns, string filter)
+        {
             var doc = new XmlDocument();
 
             // the xml declaration is recommended, but not mandatory

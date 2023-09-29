@@ -29,12 +29,15 @@
         private void InitializeComponent()
         {
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FilterEditor));
             this.panel1 = new System.Windows.Forms.Panel();
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
-            this.btnClose = new System.Windows.Forms.Button();
+            this.btnCancel = new System.Windows.Forms.Button();
             this.txtFilter = new System.Windows.Forms.RichTextBox();
             this.tmrTextChanged = new System.Windows.Forms.Timer(this.components);
+            this.btnOK = new System.Windows.Forms.Button();
+            this.btnFxb = new System.Windows.Forms.Button();
             this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -56,10 +59,10 @@
             this.label2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label2.Location = new System.Drawing.Point(6, 29);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(495, 13);
+            this.label2.Size = new System.Drawing.Size(619, 19);
             this.label2.TabIndex = 1;
-            this.label2.Text = "Enter the filter section from the FetchXml query created by the \"Advanced Find\" f" +
-    "eature in CRM ";
+            this.label2.Text = "Enter the filter section or the whole FetchXml query created by the \"Advanced Fin" +
+    "d\" feature in CRM ";
             // 
             // label1
             // 
@@ -67,20 +70,20 @@
             this.label1.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label1.Location = new System.Drawing.Point(4, 4);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(136, 25);
+            this.label1.Size = new System.Drawing.Size(173, 32);
             this.label1.TabIndex = 0;
             this.label1.Text = "FetchXml Filter";
             // 
-            // btnClose
+            // btnCancel
             // 
-            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnClose.Location = new System.Drawing.Point(593, 307);
-            this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(75, 23);
-            this.btnClose.TabIndex = 2;
-            this.btnClose.Text = "Close";
-            this.btnClose.UseVisualStyleBackColor = true;
-            this.btnClose.Click += new System.EventHandler(this.BtnCloseClick);
+            this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.btnCancel.Location = new System.Drawing.Point(593, 307);
+            this.btnCancel.Name = "btnCancel";
+            this.btnCancel.Size = new System.Drawing.Size(75, 23);
+            this.btnCancel.TabIndex = 2;
+            this.btnCancel.Text = "Cancel";
+            this.btnCancel.UseVisualStyleBackColor = true;
             // 
             // txtFilter
             // 
@@ -99,13 +102,41 @@
             this.tmrTextChanged.Interval = 500;
             this.tmrTextChanged.Tick += new System.EventHandler(this.tmrTextChanged_Tick);
             // 
+            // btnOK
+            // 
+            this.btnOK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
+            this.btnOK.Location = new System.Drawing.Point(512, 307);
+            this.btnOK.Name = "btnOK";
+            this.btnOK.Size = new System.Drawing.Size(75, 23);
+            this.btnOK.TabIndex = 4;
+            this.btnOK.Text = "OK";
+            this.btnOK.UseVisualStyleBackColor = true;
+            // 
+            // btnFxb
+            // 
+            this.btnFxb.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnFxb.DialogResult = System.Windows.Forms.DialogResult.OK;
+            this.btnFxb.Image = ((System.Drawing.Image)(resources.GetObject("btnFxb.Image")));
+            this.btnFxb.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
+            this.btnFxb.Location = new System.Drawing.Point(12, 307);
+            this.btnFxb.Name = "btnFxb";
+            this.btnFxb.Size = new System.Drawing.Size(181, 23);
+            this.btnFxb.TabIndex = 5;
+            this.btnFxb.Text = "Edit Query in FetchXML Builder";
+            this.btnFxb.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.btnFxb.UseVisualStyleBackColor = true;
+            this.btnFxb.Click += new System.EventHandler(this.btnFxb_Click);
+            // 
             // FilterEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(680, 342);
+            this.Controls.Add(this.btnFxb);
+            this.Controls.Add(this.btnOK);
             this.Controls.Add(this.txtFilter);
-            this.Controls.Add(this.btnClose);
+            this.Controls.Add(this.btnCancel);
             this.Controls.Add(this.panel1);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -125,8 +156,10 @@
         private System.Windows.Forms.Panel panel1;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button btnClose;
+        private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.RichTextBox txtFilter;
         private System.Windows.Forms.Timer tmrTextChanged;
+        private System.Windows.Forms.Button btnOK;
+        private System.Windows.Forms.Button btnFxb;
     }
 }
